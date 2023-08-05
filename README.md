@@ -31,13 +31,13 @@ class DBConfig(SubConfig):
     _prefix = "db"
 
     # This will read the environment variables as described in the comments below.
-    host = "127.0.0.1"  # DB_HOST
-    port = 5432  # DB_PORT
-    user: str  # DB_USER
-    password: str  # DB_PASSWORD
-    database: str  # DB_DATABASE
-    tls = False  # DB_TLS
-    auto_commit: bool  # DB_AUTOCOMMIT
+    host = "127.0.0.1"  # APP_DB_HOST
+    port = 5432  # APP_DB_PORT
+    user: str  # APP_DB_USER
+    password: str  # APP_DB_PASSWORD
+    database: str  # APP_DB_DATABASE
+    tls = False  # APP_DB_TLS
+    auto_commit: bool  # APP_DB_AUTOCOMMIT
 
 
 class AppConfig(BaseConfig):
