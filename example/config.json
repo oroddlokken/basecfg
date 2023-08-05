@@ -1,0 +1,18 @@
+{
+    "myapp": {
+        "numbers": [
+            4,
+            8,
+            15,
+            16,
+            23,
+            42
+        ],
+        "nested": {
+            "some_string": "The quick brown fox jumps over the lazy dog.",
+            "deep": {
+                "another_string": "Lorem ipsum dolor sit amet"
+            }
+        }
+    }
+}

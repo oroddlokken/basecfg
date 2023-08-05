@@ -1,0 +1,8 @@
+*.pyc
+.coverage
+*egg-info
+/dist
+/build
+.env
+*scratch*
+/history

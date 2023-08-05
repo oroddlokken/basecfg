@@ -1,0 +1,240 @@
+# <= 3.7 is just running tests and setup.py
+
+###
+###
+### Python 3.6 stage
+###
+###
+
+FROM python:3.6 as py36
+
+RUN mkdir /src
+WORKDIR /src
+ENV PYTHONPATH="/src"
+
+RUN --mount=type=cache,target=/root/.cache/pip pip install coverage toml python-dotenv>=1.0.0
+
+ADD basecfg /src/basecfg
+ADD tests /src/tests
+ADD example /src/example
+ADD setup.py README.md /src/
+
+# Run examples, since this is where the more experimental stuff goes
+RUN python3 example/example_usage.py
+
+# Run tests and make sure it builds
+RUN make -C /src/tests
+RUN python3 setup.py build
+
+###
+###
+### Python 3.7 stage
+###
+###
+
+FROM python:3.7 as py37
+
+RUN mkdir /src
+WORKDIR /src
+ENV PYTHONPATH="/src"
+
+RUN --mount=type=cache,target=/root/.cache/pip pip install coverage toml python-dotenv>=1.0.0
+
+ADD basecfg /src/basecfg
+ADD tests /src/tests
+ADD example /src/example
+ADD setup.py README.md /src/
+
+# Run examples, since this is where the more experimental stuff goes
+RUN python3 example/example_usage.py
+
+# Run tests and make sure it builds
+RUN make -C /src/tests
+RUN python3 setup.py build
+
+# 3.8+ is running tox as well
+
+###
+###
+### Python 3.8 stage
+###
+###
+
+FROM python:3.8 as py38
+
+RUN mkdir /src
+WORKDIR /src
+ENV PYTHONPATH="/src"
+
+RUN pip install pip-tools
+
+COPY requirements.in dev-requirements.in /src/
+RUN --mount=type=cache,target=/root/.cache/pip pip-compile requirements.in && pip-compile dev-requirements.in && pip install -r dev-requirements.txt -r requirements.txt
+
+# Avoid isort complaining about no .git directory
+RUN git init
+
+COPY setup.py tox.ini pyproject.toml README.md /src/
+ADD basecfg /src/basecfg
+ADD tests /src/tests
+ADD example /src/example
+
+# Run examples, since this is where the more experimental stuff goes
+RUN python3 example/example_usage.py
+
+# Run tests and make sure it builds
+RUN make -C /src/tests
+RUN --mount=type=cache,target=/root/.cache/pip tox
+RUN python3 setup.py build
+
+###
+###
+### Python 3.9 stage
+###
+###
+
+FROM python:3.9 as py39
+
+RUN mkdir /src
+WORKDIR /src
+ENV PYTHONPATH="/src"
+
+RUN pip install pip-tools
+
+COPY requirements.in dev-requirements.in /src/
+RUN --mount=type=cache,target=/root/.cache/pip pip-compile requirements.in && pip-compile dev-requirements.in && pip install -r dev-requirements.txt -r requirements.txt
+
+# Avoid isort complaining about no .git directory
+RUN git init
+
+COPY setup.py tox.ini pyproject.toml README.md /src/
+ADD basecfg /src/basecfg
+ADD tests /src/tests
+ADD example /src/example
+
+# Run examples, since this is where the more experimental stuff goes
+RUN python3 example/example_usage.py
+
+# Run tests and make sure it builds
+RUN make -C /src/tests
+RUN --mount=type=cache,target=/root/.cache/pip tox
+RUN python3 setup.py build
+
+###
+###
+### Python 3.10 stage
+###
+###
+
+FROM python:3.10 as py310
+
+RUN mkdir /src
+WORKDIR /src
+ENV PYTHONPATH="/src"
+
+RUN pip install pip-tools
+
+COPY requirements.in dev-requirements.in /src/
+RUN --mount=type=cache,target=/root/.cache/pip pip-compile requirements.in && pip-compile dev-requirements.in && pip install -r dev-requirements.txt -r requirements.txt
+
+# Avoid isort complaining about no .git directory
+RUN git init
+
+COPY setup.py tox.ini pyproject.toml README.md /src/
+ADD basecfg /src/basecfg
+ADD tests /src/tests
+ADD example /src/example
+
+# Run examples, since this is where the more experimental stuff goes
+RUN python3 example/example_usage.py
+
+# Run tests and make sure it builds
+RUN make -C /src/tests
+RUN --mount=type=cache,target=/root/.cache/pip tox
+RUN python3 setup.py build
+
+###
+###
+### Python 3.11 stage
+###
+###
+
+FROM python:3.11 as py311
+
+RUN mkdir /src
+WORKDIR /src
+ENV PYTHONPATH="/src"
+
+RUN pip install pip-tools
+
+COPY requirements.in dev-requirements.in /src/
+RUN --mount=type=cache,target=/root/.cache/pip pip-compile requirements.in && pip-compile dev-requirements.in && pip install -r dev-requirements.txt -r requirements.txt
+
+# Avoid isort complaining about no .git directory
+RUN git init
+
+COPY setup.py tox.ini pyproject.toml README.md /src/
+ADD basecfg /src/basecfg
+ADD tests /src/tests
+ADD example /src/example
+
+# Run examples, since this is where the more experimental stuff goes
+RUN python3 example/example_usage.py
+
+# Run tests and make sure it builds
+RUN make -C /src/tests
+RUN --mount=type=cache,target=/root/.cache/pip tox
+RUN python3 setup.py build
+
+###
+###
+### Python 3.12 stage
+###
+###
+
+FROM python:3.12-rc-bookworm as py312
+
+RUN mkdir /src
+WORKDIR /src
+ENV PYTHONPATH="/src"
+
+RUN pip install pip-tools
+
+COPY requirements.in dev-requirements.in /src/
+RUN --mount=type=cache,target=/root/.cache/pip pip-compile requirements.in && pip-compile dev-requirements.in && pip install -r dev-requirements.txt -r requirements.txt
+
+# Avoid isort complaining about no .git directory
+RUN git init
+
+COPY setup.py tox.ini pyproject.toml README.md /src/
+ADD basecfg /src/basecfg
+ADD tests /src/tests
+ADD example /src/example
+
+# Run examples, since this is where the more experimental stuff goes
+RUN python3 example/example_usage.py
+
+# Run tests and make sure it builds
+RUN make -C /src/tests
+RUN --mount=type=cache,target=/root/.cache/pip tox
+RUN python3 setup.py build
+
+###
+###
+### Final stage
+###
+###
+
+# Copy coverage files from each build stage, so we're sure all stages ran
+FROM python as final
+RUN mkdir -p \
+    /tests/py36-coverage /tests/py37-coverage \
+    /tests/py38-coverage /tests/py39-coverage \
+    /tests/py310-coverage /tests/py311-coverage 
+COPY --from=py36 /src/tests/.coverage /tests/py36-coverage/
+COPY --from=py37 /src/tests/.coverage /tests/py37-coverage/
+COPY --from=py38 /src/tests/.coverage /tests/py38-coverage/
+COPY --from=py39 /src/tests/.coverage /tests/py39-coverage/
+COPY --from=py310 /src/tests/.coverage /tests/py310-coverage/
+COPY --from=py311 /src/tests/.coverage /tests/py311-coverage/
+COPY --from=py312 /src/tests/.coverage /tests/py312-coverage/

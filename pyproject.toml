@@ -1,0 +1,64 @@
+[tool.pydocstyle]
+ignore = "D105,D107,D203,D212,D213,D413,D416"
+
+[tool.isort]
+include_trailing_comma = true
+use_parentheses = true
+ensure_newline_before_comments = true
+atomic = true
+profile = "black"
+line_length = 88
+skip_gitignore = true
+multi_line_output = 3
+force_grid_wrap = 0
+
+[tool.mypy]
+warn_unused_ignores = true
+warn_redundant_casts = true
+check_untyped_defs = true
+
+
+[tool.ruff]
+line-length = 88
+select = [
+    "A",
+    "B",
+    "C4",
+    "DTZ",
+    "E",
+    "F",
+    "G",
+    "ICN",
+    "PIE",
+    "PTH",
+    "Q",
+    "T",   # No print
+    "W",
+    "RUF",
+    "FLY",
+    "PLR",
+    "PLE",
+    "ARG",
+    "SIM",
+    "SLF",
+    "Q",
+    "EXE",
+    "RET",
+]
+ignore = [
+    "RUF100",  # Unused blanket noqa directive	
+    "EXE001",  # Shebang is present but file is not executable	
+    "PLR0911", # Too many return statements
+    "PLR0913", # Too many arguments
+    "RET504",  #  Unnecessary assignment
+    "PLR2004", # Magic values
+]
+
+[tool.bandit]
+skips = ["B104", "B101"]
+
+
+[tool.vulture]
+ignore_names = [
+  "*_missing",
+]
