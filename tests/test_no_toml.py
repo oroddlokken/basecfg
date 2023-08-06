@@ -5,7 +5,7 @@ import unittest
 
 sys.path = [a for a in sys.path if "site-packages" not in a]
 
-from basecfg import toml_file  # noqa: E402
+from voecfg import toml_file  # noqa: E402
 
 
 class FailureTest(unittest.TestCase):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Basecfg utils."""
+"""Voecfg utils."""
 
 
 def str_to_bool(val) -> bool:

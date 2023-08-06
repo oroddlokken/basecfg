@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
-"""Basecfg base class."""
+"""Voecfg base class."""
 
 import json
 import os
 from pathlib import Path
 from typing import Any, Optional, Union, get_type_hints
 
-from basecfg.file import File, json_file, toml_file
-from basecfg.utils import str_to_bool
+from voecfg.file import File, json_file, toml_file
+from voecfg.utils import str_to_bool
 
 
 class _Required:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Example usage of basecfg."""
+"""Example usage of voecfg."""
 
 # ruff: noqa: T201, T203
 
@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from pprint import pprint
 
-from basecfg import BaseConfig, Required, SubConfig, toml_file
+from voecfg import BaseConfig, Required, SubConfig, toml_file
 
 
 class DeepConfig(SubConfig):

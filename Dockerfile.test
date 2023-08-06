@@ -14,7 +14,7 @@ ENV PYTHONPATH="/src"
 
 RUN --mount=type=cache,target=/root/.cache/pip pip install coverage toml python-dotenv>=1.0.0
 
-ADD basecfg /src/basecfg
+ADD voecfg /src/voecfg
 ADD tests /src/tests
 ADD example /src/example
 ADD setup.py README.md /src/
@@ -40,7 +40,7 @@ ENV PYTHONPATH="/src"
 
 RUN --mount=type=cache,target=/root/.cache/pip pip install coverage toml python-dotenv>=1.0.0
 
-ADD basecfg /src/basecfg
+ADD voecfg /src/voecfg
 ADD tests /src/tests
 ADD example /src/example
 ADD setup.py README.md /src/
@@ -74,8 +74,8 @@ RUN --mount=type=cache,target=/root/.cache/pip pip-compile requirements.in && pi
 # Avoid isort complaining about no .git directory
 RUN git init
 
-COPY setup.py tox.ini pyproject.toml README.md /src/
-ADD basecfg /src/basecfg
+COPY setup.py tox.ini pyproject.toml format_and_tox.sh README.md /src/
+ADD voecfg /src/voecfg
 ADD tests /src/tests
 ADD example /src/example
 
@@ -84,7 +84,7 @@ RUN python3 example/example_usage.py
 
 # Run tests and make sure it builds
 RUN make -C /src/tests
-RUN --mount=type=cache,target=/root/.cache/pip tox
+RUN --mount=type=cache,target=/root/.cache/pip bash format_and_tox.sh all
 RUN python3 setup.py build
 
 ###
@@ -107,8 +107,8 @@ RUN --mount=type=cache,target=/root/.cache/pip pip-compile requirements.in && pi
 # Avoid isort complaining about no .git directory
 RUN git init
 
-COPY setup.py tox.ini pyproject.toml README.md /src/
-ADD basecfg /src/basecfg
+COPY setup.py tox.ini pyproject.toml format_and_tox.sh README.md /src/
+ADD voecfg /src/voecfg
 ADD tests /src/tests
 ADD example /src/example
 
@@ -117,7 +117,7 @@ RUN python3 example/example_usage.py
 
 # Run tests and make sure it builds
 RUN make -C /src/tests
-RUN --mount=type=cache,target=/root/.cache/pip tox
+RUN --mount=type=cache,target=/root/.cache/pip bash format_and_tox.sh all
 RUN python3 setup.py build
 
 ###
@@ -140,8 +140,8 @@ RUN --mount=type=cache,target=/root/.cache/pip pip-compile requirements.in && pi
 # Avoid isort complaining about no .git directory
 RUN git init
 
-COPY setup.py tox.ini pyproject.toml README.md /src/
-ADD basecfg /src/basecfg
+COPY setup.py tox.ini pyproject.toml format_and_tox.sh README.md /src/
+ADD voecfg /src/voecfg
 ADD tests /src/tests
 ADD example /src/example
 
@@ -150,7 +150,7 @@ RUN python3 example/example_usage.py
 
 # Run tests and make sure it builds
 RUN make -C /src/tests
-RUN --mount=type=cache,target=/root/.cache/pip tox
+RUN --mount=type=cache,target=/root/.cache/pip bash format_and_tox.sh all
 RUN python3 setup.py build
 
 ###
@@ -173,8 +173,8 @@ RUN --mount=type=cache,target=/root/.cache/pip pip-compile requirements.in && pi
 # Avoid isort complaining about no .git directory
 RUN git init
 
-COPY setup.py tox.ini pyproject.toml README.md /src/
-ADD basecfg /src/basecfg
+COPY setup.py tox.ini pyproject.toml format_and_tox.sh README.md /src/
+ADD voecfg /src/voecfg
 ADD tests /src/tests
 ADD example /src/example
 
@@ -183,7 +183,7 @@ RUN python3 example/example_usage.py
 
 # Run tests and make sure it builds
 RUN make -C /src/tests
-RUN --mount=type=cache,target=/root/.cache/pip tox
+RUN --mount=type=cache,target=/root/.cache/pip bash format_and_tox.sh all
 RUN python3 setup.py build
 
 ###
@@ -206,8 +206,8 @@ RUN --mount=type=cache,target=/root/.cache/pip pip-compile requirements.in && pi
 # Avoid isort complaining about no .git directory
 RUN git init
 
-COPY setup.py tox.ini pyproject.toml README.md /src/
-ADD basecfg /src/basecfg
+COPY setup.py tox.ini pyproject.toml format_and_tox.sh README.md /src/
+ADD voecfg /src/voecfg
 ADD tests /src/tests
 ADD example /src/example
 
@@ -216,7 +216,7 @@ RUN python3 example/example_usage.py
 
 # Run tests and make sure it builds
 RUN make -C /src/tests
-RUN --mount=type=cache,target=/root/.cache/pip tox
+RUN --mount=type=cache,target=/root/.cache/pip bash format_and_tox.sh all
 RUN python3 setup.py build
 
 ###

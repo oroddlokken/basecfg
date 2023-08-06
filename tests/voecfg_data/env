@@ -1,0 +1,13 @@
+export VOECFG_SUB_VAR_INT=1
+export VOECFG_SUB_VAR_STR="blah"
+export VOECFG_SUB_VAR_BOOL=true
+export VOECFG_SUB_VAR_BOOL_FALSE=tru112
+export VOECFG_SUB_VAR_FLOAT=0.4
+export VOECFG_SUB_VAR_BYTES="🐱"
+export VOECFG_SUB_VAR_DICT='{"a": 1}'
+export VOECFG_SUB_VAR_LIST="[1, 2, 3]"
+
+export VOECFG_VAR_INT=1
+
+export VOECFG_ENV1="959"
+export VOECFG_VALUE2="F40"

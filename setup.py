@@ -8,7 +8,7 @@ extras = {
 }
 
 setup(
-    name="basecfg",
+    name="voecfg",
     version="0.1.0",
     author="Ove Ragnar Oddløkken",
     author_email="post@rykroken.net",

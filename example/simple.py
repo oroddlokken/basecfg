@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-"""Example usage of basecfg."""
+"""Example usage of voecfg."""
 
 # ruff: noqa: T201
 
-from basecfg import BaseConfig, SubConfig
+from voecfg import BaseConfig, SubConfig
 
 
 # Notice how we are inheriting from SubConfig instead of BaseConfig.

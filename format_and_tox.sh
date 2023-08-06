@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-black basecfg tests example
-isort basecfg tests example
+black voecfg tests example
+isort voecfg tests example
 tox
 
 if [[ "$1" == "pyright" ]]; then

@@ -1,4 +1,4 @@
-# basecfg
+# voecfg / basecfg [0]
 Minimal configuration management library for Python. Written in pure Python with no* dependencies. Runs on Python 3.6+.
 
 `*`but it is supercharged with [python-dotenv](https://pypi.org/project/python-dotenv/) and [toml](https://pypi.org/project/toml/), and is tested with them.
@@ -17,9 +17,9 @@ But here is a simple example, with a nested config class (using SubConfig) with 
 ```python
 #!/usr/bin/env python3
 
-"""Example usage of basecfg."""
+"""Example usage of voecfg."""
 
-from basecfg import BaseConfig, SubConfig
+from voecfg import BaseConfig, SubConfig
 
 
 # Notice how we are inheriting from SubConfig instead of BaseConfig.
@@ -91,5 +91,7 @@ make
 
 Running tests, tox and setup.py in Python 3.6+ using Docker:
 ```
-docker build -f Dockerfile.test -t basecfg-build-test .
+docker build -f Dockerfile.test -t voecfg-build-test .
 ```
+
+##### [0] The library was originally called basecfg, but was later renamed since there is a similar project with that name.
