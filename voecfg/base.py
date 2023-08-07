@@ -25,6 +25,7 @@ class _Base:
 
     _prefix: str = ""
     _config_path: Optional[Union[File, str, Path]] = None
+    _strict: bool = True
 
     def __init__(self):
         self._prefixes: Optional[list] = None
@@ -105,7 +106,7 @@ class _Base:
             if getattr(self, member, None) in [None, Required]:
                 raise ValueError(f"Value for {var_path} / {env_key} not set.")
 
-            if not isinstance(getattr(self, member), _Base):
+            if self._strict and not isinstance(getattr(self, member), _Base):
                 actual = type(getattr(self, member))
                 expected = self._type_hints.get(member)
                 if actual != expected:
@@ -213,6 +214,7 @@ class BaseConfig(_Base):
     Class variables:
         _prefix: str, the prefix to use for environment variables
         _config_path: None | str | Path | File, the path to the config file
+        _strict: bool, raise if the type of a value does not match the type hint
     """
 
     def __init__(self):
