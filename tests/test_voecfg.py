@@ -196,7 +196,7 @@ class SuccessTest(unittest.TestCase):
         assert config.devices["test"]["c"] == "d"
 
     def test_export(self):
-        """Test that export_config works."""
+        """Test that as_dict works."""
 
         class FlaskConfig(SubConfig):
             """A class to hold configuration values for the database."""
@@ -225,8 +225,13 @@ class SuccessTest(unittest.TestCase):
         # Make Vulture shut up
         assert config.flask.ignore_me is not None
         assert config.my_property is not None
-        data = config.export_config()
-        assert data == {"flask": {"var_int": 13, "var_str": "blah"}, "my_property": 4}
+        data = config.as_dict()
+        assert data == {
+            "voecfg_export": {
+                "sub_export": {"var_int": 13, "var_str": "blah"},
+                "my_property": 4,
+            }
+        }
 
 
 class OrderTest(unittest.TestCase):

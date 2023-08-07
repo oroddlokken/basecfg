@@ -33,7 +33,8 @@ class _Base:
         "_prefix",
         "_prefixes",
         "_cls_name",
-        "export_config",
+        "as_dict",
+        "_ignore_members",
     ]
 
     def __init__(self):
@@ -45,6 +46,8 @@ class _Base:
 
         if not self._prefix:
             raise ValueError(f"{self._cls_name}._prefix is not set")
+
+        self._prefix = self._prefix.lower()
 
     def _setup(  # noqa: PLR0912
         self,
@@ -76,7 +79,7 @@ class _Base:
 
             if (
                 getattr(self, member, None) is None
-            ):  # noqa: SIM114, We want to these two separately in /tests
+            ):  # noqa: SIM114, We want to test these two separately in /tests
                 member_type = type_hints.get(member)
                 value = None
             elif getattr(self, member) is Required:
@@ -122,6 +125,8 @@ class _Base:
 
                 raise ValueError(f"Value for {var_path} / {env_key} not set.")
 
+            # TODO: Check if the value is of the correct type if we used type hints
+
     def _load_from_environment(self, member_type, env_key):
         """Load a value from the environment."""
         env_value = os.environ[env_key]
@@ -138,7 +143,6 @@ class _Base:
         elif member_type in [list, dict]:
             v = json.loads(env_value)
         else:
-            # print(env_key, member_type, True)
             v = env_value
 
         return v
@@ -148,6 +152,11 @@ class _Base:
         # Get all members of the class with values
         members = {}
         for member in dir(self):
+            # Ignore @property members
+            if hasattr(self.__class__, member) and isinstance(
+                getattr(self.__class__, member), property
+            ):
+                continue
             members[member] = getattr(self, member)
 
         # Get all members of the class with type hints
@@ -159,18 +168,17 @@ class _Base:
 
         return members, type_hints
 
-    def export_config(self):
+    def as_dict(self):
         """Export the config as a dict.
 
-        Keep in mind that this will contain secrets that were
-        loaded from the environment.
+        Keep in mind that this will contain any secrets
+        that were loaded from the environment.
 
         We also ignore any methods and callables.
 
         There are no guarantees that the config can be serialized
-        to JSON or TOML.
+        to JSON or TOML, as the end result may contain any type of value.
         """
-        # TODO: It should be nested under the key of the base class
         data = {}
         for member in dir(self):
             if member.startswith("_"):
@@ -182,11 +190,15 @@ class _Base:
             value = getattr(self, member)
 
             if isinstance(value, _Base):
-                data[member] = value.export_config()
+                data[value._prefix] = value.as_dict()  # noqa: SLF001
             elif callable(value):
                 continue
+            # FIXME: Should we ignore @property members?
             else:
                 data[member] = value
+
+        if isinstance(self, BaseConfig):
+            data = {self._prefix: data}
 
         return data
 
@@ -201,6 +213,12 @@ class SubConfig(_Base):
     """
 
     def __init__(self):
+        # Initialize members with only type hints and no value to None.
+        _, type_hints = self._get_members()
+        for member in type_hints:
+            if not getattr(self, member, None):
+                setattr(self, member, None)
+
         super().__init__()
 
 
@@ -223,13 +241,15 @@ class BaseConfig(_Base):
         if isinstance(config_path, Path):
             config_path = str(config_path.resolve().absolute())
 
-        # TODO: Include name of the class in the error message
         if config_path:
             # If the path is a File object, load it
             if isinstance(config_path, File):
                 parent_dict = config_path.load()
                 if not isinstance(parent_dict, (dict, list)):
-                    raise ValueError(f"{config_path} did not return a dict")
+                    raise ValueError(
+                        f"{self._cls_name}: {config_path} did not return a dict"
+                    )
+
             # If the path is a string, try to load it as a JSON or TOML file
             elif isinstance(config_path, str):
                 if config_path.endswith(".json"):
@@ -237,7 +257,10 @@ class BaseConfig(_Base):
                 elif config_path.endswith(".toml"):
                     parent_dict = toml_file(config_path).load()
                 else:
-                    raise ValueError(f"Unknown file type: {config_path}")
+                    raise ValueError(
+                        f"{self._cls_name}: Unknown file type: {config_path}"
+                    )
+
             else:
                 raise ValueError(
                     (

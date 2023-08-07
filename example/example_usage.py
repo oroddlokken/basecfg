@@ -30,6 +30,8 @@ class DeepConfig(SubConfig):
     # in the Config class below.
     another_string: str
 
+    another_number: int
+
     def my_method(self):
         """Return a list of values."""
         return [self.some_dict_empty]
@@ -93,7 +95,7 @@ class Config(BaseConfig):
     @property
     def numbers_sum(self):
         """Return the sum of some numbers."""
-        return sum([self.nested.lottery_number, 13])
+        return sum([self.nested.lottery_number, self.nested.deep.another_number])
 
     # Load a TOML file from the same directory as this file.
     # We include a type hint that tells the IDE that this is a dict.
@@ -135,4 +137,4 @@ assert config.nested.deep.some_dict == {"a": 1}
 assert config.nested.deep.some_dict_empty == {}
 assert config.nested.deep.some_list == [1, 2, 3]
 
-pprint(config.export_config())
+pprint(config.as_dict())

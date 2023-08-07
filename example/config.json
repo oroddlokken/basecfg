@@ -11,6 +11,7 @@
         "nested": {
             "some_string": "The quick brown fox jumps over the lazy dog.",
             "deep": {
+                "another_number": 13,
                 "another_string": "Lorem ipsum dolor sit amet"
             }
         }
