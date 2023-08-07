@@ -25,18 +25,6 @@ class _Base:
     _prefix: str = ""
     _config_path: Optional[Union[File, str, Path]] = None
 
-    _ignore_members = [  # noqa: RUF012
-        "_config_path",
-        "_current_dict",
-        "_names",
-        "_parent_dict",
-        "_prefix",
-        "_prefixes",
-        "_cls_name",
-        "as_dict",
-        "_ignore_members",
-    ]
-
     def __init__(self):
         self._prefixes: Optional[list] = None
         self._parent_dict: Optional[dict] = None
@@ -48,6 +36,8 @@ class _Base:
             raise ValueError(f"{self._cls_name}._prefix is not set")
 
         self._prefix = self._prefix.lower()
+
+        self._members, self._type_hints = self._get_members()
 
     def _setup(  # noqa: PLR0912
         self,
@@ -64,26 +54,16 @@ class _Base:
         self._names = _names or []
         self._names.append(self._cls_name)
 
-        members, type_hints = self._get_members()
-
-        for member in members:
+        for member in self._members:
             member_type = None
-
-            # Ignore dunder methods
-            if member.startswith("__"):
-                continue
-
-            # Ignore private members belonging to BaseModel
-            if member in self._ignore_members:
-                continue
 
             if (
                 getattr(self, member, None) is None
             ):  # noqa: SIM114, We want to test these two separately in /tests
-                member_type = type_hints.get(member)
+                member_type = self._type_hints.get(member)
                 value = None
             elif getattr(self, member) is Required:
-                member_type = type_hints.get(member)
+                member_type = self._type_hints.get(member)
                 value = None
             else:
                 value = getattr(self, member)
@@ -119,13 +99,18 @@ class _Base:
                     env_value = self._load_from_environment(member_type, env_key)
                     setattr(self, member, env_value)
 
+            var_path = ".".join([*self._names, member])
             # Do a final check to see if the value is set
             if getattr(self, member, None) in [None, Required]:
-                var_path = ".".join([*self._names, member])
-
                 raise ValueError(f"Value for {var_path} / {env_key} not set.")
 
-            # TODO: Check if the value is of the correct type if we used type hints
+            if not isinstance(getattr(self, member), _Base):
+                actual = type(getattr(self, member))
+                expected = self._type_hints.get(member)
+                if actual != expected:
+                    raise TypeError(
+                        f"{var_path} / {env_key} is {actual}, expected {expected}"
+                    )
 
     def _load_from_environment(self, member_type, env_key):
         """Load a value from the environment."""
@@ -151,16 +136,23 @@ class _Base:
         """Get all members of the class, including members with only type hints."""
         # Get all members of the class with values
         members = {}
+        type_hints = {}
         for member in dir(self):
             # Ignore @property members
             if hasattr(self.__class__, member) and isinstance(
                 getattr(self.__class__, member), property
             ):
                 continue
+
+            # Ignore private members
+            if member.startswith("_"):
+                continue
+
             members[member] = getattr(self, member)
+            type_hints[member] = type(getattr(self, member))
 
         # Get all members of the class with type hints
-        type_hints = get_type_hints(self)
+        type_hints.update(get_type_hints(self))
         for member, hints in type_hints.items():
             # We only want members with no value
             if getattr(self, member, None) is None:
@@ -180,20 +172,14 @@ class _Base:
         to JSON or TOML, as the end result may contain any type of value.
         """
         data = {}
-        for member in dir(self):
-            if member.startswith("_"):
-                continue
 
-            if member in self._ignore_members:
-                continue
-
+        for member in self._members:
             value = getattr(self, member)
 
             if isinstance(value, _Base):
                 data[value._prefix] = value.as_dict()  # noqa: SLF001
             elif callable(value):
                 continue
-            # FIXME: Should we ignore @property members?
             else:
                 data[member] = value
 
@@ -211,15 +197,6 @@ class SubConfig(_Base):
     Class variables:
         _prefix: str, the prefix to use for environment variables
     """
-
-    def __init__(self):
-        # Initialize members with only type hints and no value to None.
-        _, type_hints = self._get_members()
-        for member in type_hints:
-            if not getattr(self, member, None):
-                setattr(self, member, None)
-
-        super().__init__()
 
 
 class BaseConfig(_Base):

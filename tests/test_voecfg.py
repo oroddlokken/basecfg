@@ -229,7 +229,6 @@ class SuccessTest(unittest.TestCase):
         assert data == {
             "voecfg_export": {
                 "sub_export": {"var_int": 13, "var_str": "blah"},
-                "my_property": 4,
             }
         }
 
@@ -421,6 +420,23 @@ class FailureTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             voecfgTestConfig()
+
+    def test_wrong_type(self):
+        class voecfgTestConfig(BaseConfig):
+            """Test config for voecfg."""
+
+            _prefix = "voecfg"
+
+            some_str_we_pretend_is_int: int = 1
+
+            _config_path = json_file(
+                Path(__file__).parent / "voecfg_data" / "config.json"
+            )
+
+        with self.assertRaises(TypeError):
+            voecfgTestConfig()
+            # Make vulture shut up
+            assert voecfgTestConfig.some_str_we_pretend_is_int is not None
 
 
 if __name__ == "__main__":

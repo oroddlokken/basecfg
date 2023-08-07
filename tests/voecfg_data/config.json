@@ -2,6 +2,7 @@
     "voecfg": {
         "another_value": "porsche",
         "value2": "F50",
-        "value3": "F1"
+        "value3": "F1",
+        "some_str_we_pretend_is_int": "A7"
     }
 }
