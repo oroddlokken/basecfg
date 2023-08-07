@@ -4,6 +4,7 @@
 
 import json
 import os
+import sys
 from pathlib import Path
 from typing import Any, Optional, Union, get_type_hints
 
@@ -154,6 +155,11 @@ class _Base:
         # Get all members of the class with type hints
         type_hints.update(get_type_hints(self))
         for member, hints in type_hints.items():
+            # get_type_hints() behave differently in Python before
+            # and after 3.10
+            if sys.version_info.minor < 10 and member.startswith("_"):
+                continue  # pragma: no cover
+
             # We only want members with no value
             if getattr(self, member, None) is None:
                 members[member] = hints
