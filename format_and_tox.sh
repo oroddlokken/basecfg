@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 
-black voecfg tests example
-isort voecfg tests example
+black voecfg tests
+isort voecfg tests
 tox
 
 if [[ "$1" == "pyright" ]]; then
-    tox -e pyright
-else
-    :
+pyright voecfg tests
 fi

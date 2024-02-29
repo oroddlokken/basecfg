@@ -12,7 +12,7 @@ from voecfg import BaseConfig, File, Required, SubConfig, json_file, toml_file
 
 load_dotenv(Path(__file__).parent / "voecfg_data" / "env")
 
-# noqa: PLR2004
+# ruff: noqa: PLR2004, PLR6301, N801
 
 
 class BrokenMockFile(File):
@@ -70,7 +70,7 @@ class SuccessTest(unittest.TestCase):
             _prefix = "voecfg_rins"
 
             _config_path = json_file(
-                Path(__file__).parent / "voecfg_data" / "rins.json"
+                Path(__file__).parent / "voecfg_data" / "rins.json",
             )
 
             str1: str
@@ -87,7 +87,7 @@ class SuccessTest(unittest.TestCase):
             _prefix = "voecfg"
 
             _config_path = toml_file(
-                Path(__file__).parent / "voecfg_data" / "config.toml"
+                Path(__file__).parent / "voecfg_data" / "config.toml",
             )
 
             other_value: str
@@ -118,7 +118,7 @@ class SuccessTest(unittest.TestCase):
             _prefix = "voecfg"
 
             _config_path = json_file(
-                Path(__file__).parent / "voecfg_data" / "config.json"
+                Path(__file__).parent / "voecfg_data" / "config.json",
             )
 
             another_value: str
@@ -229,7 +229,7 @@ class SuccessTest(unittest.TestCase):
         assert data == {
             "voecfg_export": {
                 "sub_export": {"var_int": 13, "var_str": "blah"},
-            }
+            },
         }
 
 
@@ -256,7 +256,7 @@ class OrderTest(unittest.TestCase):
             value2: str
 
             _config_path = json_file(
-                Path(__file__).parent / "voecfg_data" / "config.json"
+                Path(__file__).parent / "voecfg_data" / "config.json",
             )
 
         config = voecfgTestConfig()
@@ -271,7 +271,7 @@ class OrderTest(unittest.TestCase):
             value3: str = "P1"
 
             _config_path = json_file(
-                Path(__file__).parent / "voecfg_data" / "config.json"
+                Path(__file__).parent / "voecfg_data" / "config.json",
             )
 
         config = voecfgTestConfig()
@@ -430,7 +430,7 @@ class FailureTest(unittest.TestCase):
             some_str_we_pretend_is_int: int = 1
 
             _config_path = json_file(
-                Path(__file__).parent / "voecfg_data" / "config.json"
+                Path(__file__).parent / "voecfg_data" / "config.json",
             )
 
         with self.assertRaises(TypeError):

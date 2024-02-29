@@ -2,17 +2,16 @@
 
 """Voecfg base class."""
 
-import json
 import os
 from pathlib import Path
 from typing import Any, Optional, Union, get_type_hints
 
 from voecfg.file import File, json_file, toml_file
-from voecfg.utils import str_to_bool
+from voecfg.utils import _load_from_environment
 
 
 class _Required:
-    def __init__(self, _type=None):
+    def __init__(self, _type: Any = None):
         self._type = _type
 
 
@@ -26,7 +25,7 @@ class _Base:
     _config_path: Optional[Union[File, str, Path]] = None
     _strict: bool = True
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._prefixes: Optional[list] = None
         self._parent_dict: Optional[dict] = None
         self._names: Optional[list] = None
@@ -45,7 +44,7 @@ class _Base:
         _parent_dict: Optional[dict] = None,
         _prefixes: Optional[list] = None,
         _names: Optional[list] = None,
-    ):
+    ) -> None:
         self._prefixes = _prefixes or []
 
         self._current_dict: Any = {}
@@ -97,12 +96,12 @@ class _Base:
                     setattr(self, member, dict_value)
 
                 if env_key in os.environ:
-                    env_value = self._load_from_environment(member_type, env_key)
+                    env_value = _load_from_environment(member_type, env_key)
                     setattr(self, member, env_value)
 
             var_path = ".".join([*self._names, member])
             # Do a final check to see if the value is set
-            if getattr(self, member, None) in [None, Required]:
+            if getattr(self, member, None) in [None, Required]:  # noqa: PLR6201
                 raise ValueError(f"Value for {var_path} / {env_key} not set.")
 
             if self._strict and not isinstance(getattr(self, member), _Base):
@@ -110,30 +109,10 @@ class _Base:
                 expected = self._type_hints.get(member)
                 if actual != expected:
                     raise TypeError(
-                        f"{var_path} / {env_key} is {actual}, expected {expected}"
+                        f"{var_path} / {env_key} is {actual}, expected {expected}",
                     )
 
-    def _load_from_environment(self, member_type, env_key):
-        """Load a value from the environment."""
-        env_value = os.environ[env_key]
-
-        v: Union[str, int, bool, float, bytes, list, dict]
-        if member_type == bool:
-            v = str_to_bool(env_value)
-        elif member_type == int:
-            v = int(env_value)
-        elif member_type == float:
-            v = float(env_value)
-        elif member_type == bytes:
-            v = bytes(env_value, "utf-8")
-        elif member_type in [list, dict]:
-            v = json.loads(env_value)
-        else:
-            v = env_value
-
-        return v
-
-    def _get_members(self):
+    def _get_members(self) -> tuple[dict[str, Any], dict[str, Any]]:
         """Get all members of the class, including members with only type hints."""
         # Get all members of the class with values
         members = {}
@@ -141,7 +120,8 @@ class _Base:
         for member in dir(self):
             # Ignore @property members
             if hasattr(self.__class__, member) and isinstance(
-                getattr(self.__class__, member), property
+                getattr(self.__class__, member),
+                property,
             ):
                 continue
 
@@ -166,7 +146,7 @@ class _Base:
 
         return members, type_hints
 
-    def as_dict(self):
+    def as_dict(self) -> dict[str, Any]:
         """Export the config as a dict.
 
         Keep in mind that this will contain any secrets
@@ -216,7 +196,7 @@ class BaseConfig(_Base):
         _strict: bool, raise if the type of a value does not match the type hint
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         parent_dict: Any = {}
@@ -231,7 +211,7 @@ class BaseConfig(_Base):
                 parent_dict = config_path.load()
                 if not isinstance(parent_dict, (dict, list)):
                     raise ValueError(
-                        f"{self._cls_name}: {config_path} did not return a dict"
+                        f"{self._cls_name}: {config_path} did not return a dict",
                     )
 
             # If the path is a string, try to load it as a JSON or TOML file
@@ -242,7 +222,7 @@ class BaseConfig(_Base):
                     parent_dict = toml_file(config_path).load()
                 else:
                     raise ValueError(
-                        f"{self._cls_name}: Unknown file type: {config_path}"
+                        f"{self._cls_name}: Unknown file type: {config_path}",
                     )
 
             else:
@@ -250,7 +230,7 @@ class BaseConfig(_Base):
                     (
                         f"{self._cls_name}: Unsupported _config_path "
                         f"type: {type(config_path)}"
-                    )
+                    ),
                 )
 
         self._setup(

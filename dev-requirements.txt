@@ -4,119 +4,137 @@
 #
 #    pip-compile dev-requirements.in
 #
-bandit==1.7.5
+bandit==1.7.7
     # via -r dev-requirements.in
-black==23.7.0
+black==24.2.0
     # via -r dev-requirements.in
-build==0.10.0
+build==1.1.1
     # via pip-tools
-cachetools==5.3.1
+cachetools==5.3.3
     # via tox
-chardet==5.1.0
+chardet==5.2.0
     # via tox
-click==8.1.6
+click==8.1.7
     # via
     #   black
+    #   fixit
+    #   moreorless
     #   pip-tools
 colorama==0.4.6
     # via tox
-coverage==7.2.7
+coverage==7.4.3
     # via -r dev-requirements.in
-distlib==0.3.7
+distlib==0.3.8
     # via virtualenv
-filelock==3.12.2
+filelock==3.13.1
     # via
     #   tox
     #   virtualenv
-gitdb==4.0.10
-    # via gitpython
-gitpython==3.1.32
-    # via bandit
-isort==5.12.0
+fixit==2.1.0
     # via -r dev-requirements.in
+isort==5.13.2
+    # via -r dev-requirements.in
+libcst==1.2.0
+    # via fixit
 markdown-it-py==3.0.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
-mypy==1.4.1
+moreorless==0.4.0
+    # via fixit
+mypy==1.8.0
     # via -r dev-requirements.in
 mypy-extensions==1.0.0
     # via
     #   black
     #   mypy
+    #   typing-inspect
 nodeenv==1.8.0
     # via pyright
-packaging==23.1
+packaging==23.2
     # via
     #   black
     #   build
+    #   fixit
     #   pyproject-api
     #   tox
-pathspec==0.11.2
-    # via black
-pbr==5.11.1
+pathspec==0.12.1
+    # via
+    #   black
+    #   trailrunner
+pbr==6.0.0
     # via stevedore
-pip-tools==7.1.0
+pip-tools==7.4.0
     # via -r dev-requirements.in
-platformdirs==3.10.0
+platformdirs==4.2.0
     # via
     #   black
     #   tox
     #   virtualenv
-pluggy==1.2.0
+pluggy==1.4.0
     # via tox
 pydocstyle==6.3.0
     # via -r dev-requirements.in
-pygments==2.15.1
+pygments==2.17.2
     # via rich
-pyproject-api==1.5.3
+pyproject-api==1.6.1
     # via tox
 pyproject-hooks==1.0.0
-    # via build
-pyright==1.1.318
+    # via
+    #   build
+    #   pip-tools
+pyright==1.1.352
     # via -r dev-requirements.in
-python-dotenv==1.0.0
+python-dotenv==1.0.1
     # via -r dev-requirements.in
 pyyaml==6.0.1
+    # via
+    #   bandit
+    #   libcst
+rich==13.7.1
     # via bandit
-rich==13.5.0
-    # via bandit
-ruff==0.0.280
+ruff==0.3.0
     # via -r dev-requirements.in
-smmap==5.0.0
-    # via gitdb
 snowballstemmer==2.2.0
     # via pydocstyle
-stevedore==5.1.0
+stevedore==5.2.0
     # via
     #   bandit
     #   virtualenvwrapper
-toml==0.10.2
-    # via vulture
 tomli==2.0.1
     # via
     #   black
     #   build
+    #   fixit
     #   mypy
     #   pip-tools
     #   pyproject-api
     #   pyproject-hooks
     #   tox
-tox==4.6.4
+    #   vulture
+tox==4.13.0
     # via -r dev-requirements.in
-typing-extensions==4.7.1
-    # via mypy
-virtualenv==20.24.2
+trailrunner==1.4.0
+    # via fixit
+typing-extensions==4.10.0
+    # via
+    #   black
+    #   libcst
+    #   mypy
+    #   typing-inspect
+typing-inspect==0.9.0
+    # via libcst
+virtualenv==20.25.1
     # via
     #   tox
     #   virtualenvwrapper
 virtualenv-clone==0.5.7
     # via virtualenvwrapper
-virtualenvwrapper==4.8.4
+virtualenvwrapper==6.1.0
     # via -r dev-requirements.in
-vulture==2.7
+vulture==2.11
     # via -r dev-requirements.in
-wheel==0.41.0
+wheel==0.42.0
     # via pip-tools
 
 # The following packages are considered to be unsafe in a requirements file:
