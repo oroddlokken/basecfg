@@ -4,6 +4,7 @@
 
 import os
 from pathlib import Path
+from types import GenericAlias
 from typing import Any, Optional, Union, get_type_hints
 
 from voecfg.file import File, json_file, toml_file
@@ -123,7 +124,7 @@ class _Base:
 
         # Get all members of the class with type hints
         type_hints.update(get_type_hints(self))
-        for member, hints in type_hints.items():
+        for member, hint in type_hints.items():
             # get_type_hints behave different in 3.10+
             if member.startswith("_"):
                 # the ignore below is needed for 3.10+ to make coverage happy
@@ -131,7 +132,9 @@ class _Base:
 
             # We only want members with no value at all
             if getattr(self, member, None) is None:
-                members[member] = hints
+                members[member] = hint
+            elif isinstance(hint, GenericAlias):
+                type_hints[member] = hint.__origin__
 
         return members, type_hints
 

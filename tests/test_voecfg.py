@@ -189,7 +189,7 @@ class SuccessTest(unittest.TestCase):
 
             _prefix = "voecfg"
 
-            devices: dict = toml_file("voecfg_data/load_toml.toml")
+            devices: dict[str, Any] = toml_file("voecfg_data/load_toml.toml")
 
         config = voecfgTestConfig()
         self.assertFalse(config.devices["a"][0])
