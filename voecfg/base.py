@@ -224,5 +224,5 @@ class BaseConfig(_Base):
 
         self._setup(
             # TODO: Find out why pyright is complaining about this
-            _parent_dict=parent_dict,  # pyright: ignore [reportGeneralTypeIssues]
+            _parent_dict=parent_dict,  # pyright: ignore [reportArgumentType]
         )
