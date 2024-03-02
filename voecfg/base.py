@@ -10,14 +10,6 @@ from voecfg.file import File, json_file, toml_file
 from voecfg.utils import _load_from_environment
 
 
-class _Required:
-    def __init__(self, _type: Any = None):
-        self._type = _type
-
-
-Required: Any = _Required()
-
-
 class _Base:
     """Base class for config models."""
 
@@ -62,9 +54,6 @@ class _Base:
             ):  # noqa: SIM114, We want to test these two separately in /tests
                 member_type = self._type_hints.get(member)
                 value = None
-            elif getattr(self, member) is Required:
-                member_type = self._type_hints.get(member)
-                value = None
             else:
                 value = getattr(self, member)
                 member_type = type(getattr(self, member))
@@ -101,7 +90,7 @@ class _Base:
 
             var_path = ".".join([*self._names, member])
             # Do a final check to see if the value is set
-            if getattr(self, member, None) in [None, Required]:  # noqa: PLR6201
+            if getattr(self, member, None) is None:  # noqa: PLR6201
                 raise ValueError(f"Value for {var_path} / {env_key} not set.")
 
             if self._strict and not isinstance(getattr(self, member), _Base):

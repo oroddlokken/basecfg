@@ -8,7 +8,7 @@ from typing import Any, Union
 import toml
 from dotenv import load_dotenv
 
-from voecfg import BaseConfig, File, Required, SubConfig, json_file, toml_file
+from voecfg import BaseConfig, File, SubConfig, json_file, toml_file
 
 load_dotenv(Path(__file__).parent / "voecfg_data" / "env")
 
@@ -34,7 +34,7 @@ class SuccessTest(unittest.TestCase):
 
             _prefix = "sub"
 
-            var_int: int = Required
+            var_int: int
             var_str: str
             var_bool: bool
             var_bool_false: bool
@@ -329,7 +329,7 @@ class FailureTest(unittest.TestCase):
 
             _prefix = "voecfg"
 
-            env_required_int: int = Required
+            env_required_int: int
 
         with self.assertRaises(ValueError):
             voecfgTestConfig()

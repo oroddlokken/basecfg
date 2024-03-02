@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from pprint import pprint
 
-from voecfg import BaseConfig, Required, SubConfig, toml_file
+from voecfg import BaseConfig, SubConfig, toml_file
 
 
 class DeepConfig(SubConfig):
@@ -47,10 +47,10 @@ class NestedConfig(SubConfig):
 
     # Require the environment variable MYAPP_NESTED_SECRET_KEY to be set,
     # and if it is not set, raise an exception. We don't want to set a default
-    # value for this variable, as it is a secret, so we set it to Required.
+    # value for this variable, as it is a secret.
     # That way, if it is not set in the environment or config file,
     # an exception will still be raised.
-    secret_key: str = Required
+    secret_key: str
 
     # Read the environment MYAPP_NESTED_DEBUG_MODE,
     # but if it is not defined, default to False
@@ -60,7 +60,7 @@ class NestedConfig(SubConfig):
 
     # Read the environment MYAPP_NESTED_SOME_BYTES
     # and decode it as UTF-8 bytes.
-    some_bytes: bytes = Required
+    some_bytes: bytes
 
     # Calling cfg_cls(DeepConfig) is not strictly necessary, but it is a convenience
     # wrapper that makes IDEs think it is a instance of DeepConfig and not just
