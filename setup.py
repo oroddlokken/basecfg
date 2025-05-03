@@ -13,7 +13,8 @@ setup(
     author="Ove Ragnar Oddløkken",
     author_email="post@rykroken.net",
     description="Configuration management",
-    packages=find_packages(),
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
     install_requires=[],
     classifiers=[
         "Development Status :: 4 - Beta",
