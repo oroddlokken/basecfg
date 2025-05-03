@@ -7,6 +7,7 @@
 import os
 from pathlib import Path
 from pprint import pprint
+from typing import Any
 
 from voecfg import BaseConfig, SubConfig, toml_file
 
@@ -22,9 +23,9 @@ class DeepConfig(SubConfig):
 
     # Read the environment variables as described in the comments
     # and parse them as JSON
-    some_dict: dict  # MYAPP_NESTED_DEEP_SOME_DICT
-    some_dict_empty: dict  # MYAPP_NESTED_DEEP_SOME_DICT_EMPTY
-    some_list: list  # MYAPP_NESTED_DEEP_SOME_LIST
+    some_dict: dict[str, Any]  # MYAPP_NESTED_DEEP_SOME_DICT
+    some_dict_empty: dict[str, Any]  # MYAPP_NESTED_DEEP_SOME_DICT_EMPTY
+    some_list: list[int]  # MYAPP_NESTED_DEEP_SOME_LIST
 
     # We set this value in example/example_usage.json, which is loaded
     # in the Config class below.
@@ -32,7 +33,7 @@ class DeepConfig(SubConfig):
 
     another_number: int
 
-    def my_method(self):
+    def my_method(self) -> list[dict[str, Any]]:
         """Return a list of values."""
         return [self.some_dict_empty]
 
@@ -89,17 +90,17 @@ class Config(BaseConfig):
     nested = NestedConfig()
 
     # This is loaded from the JSON file.
-    numbers: list
+    numbers: list[int]
 
     # @property works as expected
     @property
-    def numbers_sum(self):
+    def numbers_sum(self) -> int:
         """Return the sum of some numbers."""
         return sum([self.nested.lottery_number, self.nested.deep.another_number])
 
     # Load a TOML file from the same directory as this file.
     # We include a type hint that tells the IDE that this is a dict.
-    parameters: dict = toml_file(Path(__file__).parent / "parameters.toml")
+    parameters: dict[str, Any] = toml_file(Path(__file__).parent / "parameters.toml")
 
 
 # Set the required environment variables,
@@ -128,7 +129,7 @@ assert config.parameters["x"] == "y"
 assert config.nested.auto_reload is True
 assert config.nested.debug_mode is False
 assert config.nested.secret_key == "secret"
-assert config.nested.some_bytes == "🐱".encode("utf-8")
+assert config.nested.some_bytes == "🐱".encode()
 assert config.nested.some_string == "The quick brown fox jumps over the lazy dog."
 
 assert config.nested.deep.another_string == "Lorem ipsum dolor sit amet"

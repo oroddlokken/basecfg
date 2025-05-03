@@ -1,1 +1,2 @@
 * Export a config using as_dict() and try to import it again
+* Test that ImportError is raised when trying to import a TOML file but no parser is available

@@ -1,147 +1,43 @@
-###
-###
-### Python 3.9 stage
-###
-###
+# syntax=docker/dockerfile:1.4
+ARG PYTHON_VERSION=3.10
+FROM python:${PYTHON_VERSION} AS builder
 
-FROM python:3.9 as py39
+# Set up working directory and environment
+RUN mkdir -p /builder /builder/src
+WORKDIR /builder
+ENV PYTHONPATH="/builder/src"
 
-RUN mkdir /src
-WORKDIR /src
-ENV PYTHONPATH="/src"
+# Install uv and create venv with caching
+RUN --mount=type=cache,target=/root/.cache/pip pip install uv
 
-RUN pip install pip-tools
+RUN --mount=type=cache,target=/root/.cache/uv uv python install ${PYTHON_VERSION}
+RUN --mount=type=cache,target=/root/.cache/uv uv python pin ${PYTHON_VERSION}
+RUN --mount=type=cache,target=/root/.cache/uv uv venv .venv
 
-COPY requirements.in dev-requirements.in /src/
-RUN --mount=type=cache,target=/root/.cache/pip pip-compile requirements.in && pip-compile dev-requirements.in && pip install -r dev-requirements.txt -r requirements.txt
+# Install requirements using uv and pip
+COPY requirements.in dev-requirements.in /builder/
 
-# Avoid isort complaining about no .git directory
+RUN --mount=type=cache,target=/root/.cache/uv \
+    . .venv/bin/activate && \
+    uv pip compile dev-requirements.in -o dev-requirements.txt && \
+    uv pip compile requirements.in -o requirements.txt && \
+    uv pip install -r dev-requirements.txt -r requirements.txt
+
+# Editable install of your package
+COPY setup.py tox.ini pyproject.toml README.md justfile vulture_whitelist.py /builder/
+COPY src/ /builder/src/
+COPY tests/ /builder/tests/
+COPY example/ /builder/example/
+
+RUN . .venv/bin/activate && pip install -e .
+
+# Run validation steps
 RUN git init
+RUN . .venv/bin/activate && python3 example/example_usage.py
+RUN . .venv/bin/activate && just test
+RUN . .venv/bin/activate && just lint
+RUN . .venv/bin/activate && python3 setup.py build
 
-COPY setup.py tox.ini pyproject.toml format_and_tox.sh README.md /src/
-ADD voecfg /src/voecfg
-ADD tests /src/tests
-ADD example /src/example
-
-# Run examples, since this is where the more experimental stuff goes
-RUN python3 example/example_usage.py
-
-# Run tests and make sure it builds
-RUN make -C /src/tests
-RUN --mount=type=cache,target=/root/.cache/pip bash format_and_tox.sh all
-RUN python3 setup.py build
-
-###
-###
-### Python 3.10 stage
-###
-###
-
-FROM python:3.10 as py310
-
-RUN mkdir /src
-WORKDIR /src
-ENV PYTHONPATH="/src"
-
-RUN pip install pip-tools
-
-COPY requirements.in dev-requirements.in /src/
-RUN --mount=type=cache,target=/root/.cache/pip pip-compile requirements.in && pip-compile dev-requirements.in && pip install -r dev-requirements.txt -r requirements.txt
-
-# Avoid isort complaining about no .git directory
-RUN git init
-
-COPY setup.py tox.ini pyproject.toml format_and_tox.sh README.md /src/
-ADD voecfg /src/voecfg
-ADD tests /src/tests
-ADD example /src/example
-
-# Run examples, since this is where the more experimental stuff goes
-RUN python3 example/example_usage.py
-
-# Run tests and make sure it builds
-RUN make -C /src/tests
-RUN --mount=type=cache,target=/root/.cache/pip bash format_and_tox.sh all
-RUN python3 setup.py build
-
-###
-###
-### Python 3.11 stage
-###
-###
-
-FROM python:3.11 as py311
-
-RUN mkdir /src
-WORKDIR /src
-ENV PYTHONPATH="/src"
-
-RUN pip install pip-tools
-
-COPY requirements.in dev-requirements.in /src/
-RUN --mount=type=cache,target=/root/.cache/pip pip-compile requirements.in && pip-compile dev-requirements.in && pip install -r dev-requirements.txt -r requirements.txt
-
-# Avoid isort complaining about no .git directory
-RUN git init
-
-COPY setup.py tox.ini pyproject.toml format_and_tox.sh README.md /src/
-ADD voecfg /src/voecfg
-ADD tests /src/tests
-ADD example /src/example
-
-# Run examples, since this is where the more experimental stuff goes
-RUN python3 example/example_usage.py
-
-# Run tests and make sure it builds
-RUN make -C /src/tests
-RUN --mount=type=cache,target=/root/.cache/pip bash format_and_tox.sh all
-RUN python3 setup.py build
-
-###
-###
-### Python 3.12 stage
-###
-###
-
-FROM python:3.12 as py312
-
-RUN mkdir /src
-WORKDIR /src
-ENV PYTHONPATH="/src"
-
-RUN pip install pip-tools
-
-COPY requirements.in dev-requirements.in /src/
-RUN --mount=type=cache,target=/root/.cache/pip pip-compile requirements.in && pip-compile dev-requirements.in && pip install -r dev-requirements.txt -r requirements.txt
-
-# Avoid isort complaining about no .git directory
-RUN git init
-
-COPY setup.py tox.ini pyproject.toml format_and_tox.sh README.md /src/
-ADD voecfg /src/voecfg
-ADD tests /src/tests
-ADD example /src/example
-
-# Run examples, since this is where the more experimental stuff goes
-RUN python3 example/example_usage.py
-
-# Run tests and make sure it builds
-RUN make -C /src/tests
-RUN --mount=type=cache,target=/root/.cache/pip bash format_and_tox.sh all
-RUN python3 setup.py build
-
-###
-###
-### Final stage
-###
-###
-
-# Copy coverage files from each build stage, so we're sure all stages ran
-FROM python as final
-RUN mkdir -p \
-    /tests/py39-coverage /tests/py310-coverage \
-    /tests/py311-coverage /tests/py312-coverage
-COPY --from=py39 /src/tests/.coverage /tests/py39-coverage/
-COPY --from=py310 /src/tests/.coverage /tests/py310-coverage/
-COPY --from=py311 /src/tests/.coverage /tests/py311-coverage/
-COPY --from=py312 /src/tests/.coverage /tests/py312-coverage/
+# Final image that extracts coverage reports
+FROM python:${PYTHON_VERSION} AS final
+COPY --from=builder /builder/.coverage /builder/.coverage

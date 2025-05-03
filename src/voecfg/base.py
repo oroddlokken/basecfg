@@ -5,38 +5,39 @@
 import os
 from pathlib import Path
 from types import GenericAlias
-from typing import Any, Optional, Union, get_type_hints
+from typing import Any, get_origin, get_type_hints
 
 from voecfg.file import File, json_file, toml_file
-from voecfg.utils import _load_from_environment
+from voecfg.utils import load_from_environment
 
 
 class _Base:
     """Base class for config models."""
 
     _prefix: str = ""
-    _config_path: Optional[Union[File, str, Path]] = None
+    _config_path: File | str | Path | None = None
     _strict: bool = True
 
     def __init__(self) -> None:
-        self._prefixes: Optional[list] = None
-        self._parent_dict: Optional[dict] = None
-        self._names: Optional[list] = None
+        self._prefixes: list[str] | None = None
+        self._parent_dict: dict[str, Any] | None = None
+        self._names: list[str] | None = None
 
         self._cls_name = self.__class__.__name__
 
         if not self._prefix:
-            raise ValueError(f"{self._cls_name}._prefix is not set")
+            msg = f"{self._cls_name}._prefix is not set"
+            raise ValueError(msg)
 
         self._prefix = self._prefix.lower()
 
         self._members, self._type_hints = self._get_members()
 
-    def _setup(  # noqa: PLR0912
+    def _setup(  # noqa: PLR0912, C901
         self,
-        _parent_dict: Optional[dict] = None,
-        _prefixes: Optional[list] = None,
-        _names: Optional[list] = None,
+        _parent_dict: dict[str, Any] | None = None,
+        _prefixes: list[str] | None = None,
+        _names: list[str] | None = None,
     ) -> None:
         self._prefixes = _prefixes or []
 
@@ -48,7 +49,7 @@ class _Base:
         self._names.append(self._cls_name)
 
         for member in self._members:
-            member_type = None
+            member_type: None | type = None
 
             if (
                 getattr(self, member, None) is None
@@ -76,7 +77,6 @@ class _Base:
                     _parent_dict=self._current_dict,
                     _names=new_names,
                 )
-                # setattr(self, member, cls)
             elif isinstance(value, File):
                 setattr(self, member, value.load())
             else:
@@ -86,27 +86,35 @@ class _Base:
                     setattr(self, member, dict_value)
 
                 if env_key in os.environ:
-                    env_value = _load_from_environment(member_type, env_key)
+                    env_value = load_from_environment(member_type, env_key)
                     setattr(self, member, env_value)
 
             var_path = ".".join([*self._names, member])
             # Do a final check to see if the value is set
             if getattr(self, member, None) is None:  # noqa: PLR6201
-                raise ValueError(f"Value for {var_path} / {env_key} not set.")
+                msg = f"Value for {var_path} / {env_key} not set."
+                raise ValueError(msg)
 
             if self._strict and not isinstance(getattr(self, member), _Base):
-                actual = type(getattr(self, member))
+                actual: type = type(getattr(self, member))
                 expected = self._type_hints.get(member)
-                if actual != expected:
-                    raise TypeError(
-                        f"{var_path} / {env_key} is {actual}, expected {expected}",
+                expected_origin = get_origin(expected) or expected
+
+                if expected_origin is not None and not isinstance(
+                    getattr(self, member),
+                    expected_origin,
+                ):
+                    msg = (
+                        f"{var_path} / {env_key} is {actual}, "
+                        f"expected {expected_origin}"
                     )
+                    raise TypeError(msg)
 
     def _get_members(self) -> tuple[dict[str, Any], dict[str, Any]]:
         """Get all members of the class, including members with only type hints."""
         # Get all members of the class with values
-        members = {}
-        type_hints = {}
+        members: dict[str, Any] = {}
+        type_hints: dict[str, Any] = {}
         for member in dir(self):
             # Ignore @property members
             if hasattr(self.__class__, member) and isinstance(
@@ -149,7 +157,7 @@ class _Base:
         There are no guarantees that the config can be serialized
         to JSON or TOML, as the end result may contain any type of value.
         """
-        data = {}
+        data: dict[str, Any] = {}
 
         for member in self._members:
             value = getattr(self, member)
@@ -202,28 +210,27 @@ class BaseConfig(_Base):
             if isinstance(config_path, File):
                 parent_dict = config_path.load()
                 if not isinstance(parent_dict, (dict, list)):
-                    raise ValueError(
-                        f"{self._cls_name}: {config_path} did not return a dict",
-                    )
+                    msg = f"{self._cls_name}: {config_path} did not return a dict"
+                    raise TypeError(msg)
 
             # If the path is a string, try to load it as a JSON or TOML file
-            elif isinstance(config_path, str):
+            elif isinstance(
+                config_path,
+                str,
+            ):  # pyright: ignore[reportUnnecessaryIsInstance]
                 if config_path.endswith(".json"):
                     parent_dict = json_file(config_path).load()
                 elif config_path.endswith(".toml"):
                     parent_dict = toml_file(config_path).load()
                 else:
-                    raise ValueError(
-                        f"{self._cls_name}: Unknown file type: {config_path}",
-                    )
+                    msg = f"{self._cls_name}: Unknown file type: {config_path}"
+                    raise ValueError(msg)
 
             else:
-                raise ValueError(
-                    (
-                        f"{self._cls_name}: Unsupported _config_path "
-                        f"type: {type(config_path)}"
-                    ),
-                )
+                _clsn = self._cls_name
+                _tcp = type(config_path)
+                msg = f"{_clsn}: Unsupported _config_path type: {_tcp}"
+                raise ValueError(msg)
 
         self._setup(
             # TODO: Find out why pyright is complaining about this

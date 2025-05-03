@@ -19,6 +19,7 @@ check_untyped_defs = true
 ignore_missing_imports = true
 disallow_untyped_defs = true
 incremental = true
+mypy_path = "./typings"
 
 [tool.ruff]
 line-length = 88
@@ -28,47 +29,54 @@ select = [
   "A",    # flake8-builtins
   "ARG",  # flake8-unused-arguments 
   "B",    # bugbear
+  "BLE",  # flake8-blind-except
   "C4",   # flake8-comprehensions
+  "C90",  # McCabe complexity
   "COM",  # flake8-commas
   "DTZ",  # flake8-datetimez 
-  "E",    # pycodestyle, warning
+  "E",    # pycodestyle, error
+  "EM",   # flake8-errmsg
+  "ERA",  # flake8-eradicate
   "EXE",  # flake8-executable
   "F",    # Pyflakes
   "FLY",  # flynt
   "FURB", # refurb
   "G",    # flake8-logging-format 
   "ICN",  # flake8-import-conventions 
+  "INP",  # flake8-no-pep420 
+  "ISC",  # flake8-implicit-str-concat
   "LOG",  # flake8-logging
   "N",    # pep8-naming
   "PERF", # Perflint 
   "PIE",  # flake8-pie
+  "PT",   # flake8-pytest-style
   "PTH",  # flake8-use-pathlib 
+  "PYI",  # flake8-pyi
   "Q",    # flake8-quotes
-  "Q",    # flake8-quotes 
   "RET",  # flake8-return
+  "RSE",  # flake8-raise
   "RUF",  # Ruff
   "SIM",  # flake8-simplify
   "SLF",  # flake8-self 
-  "T",    # print
-  "W",    # pycodestyle, error
+  "SLOT", # flake8-slots
+  "T10",  # flake8-debugger
+  "TC",   # flake8-type-checking
+  "TID",  # flake8-tidy-imports
+  "TRY",  # tryceratops
+  "UP",   # pyupgrade
+  "W",    # pycodestyle, warning
+  "YTT",  # flake8-2020
 ]
 ignore = [
-  "RUF100",  # Unused blanket noqa directive	
-  "EXE001",  # Shebang is present but file is not executable	
-  "PLR0911", # Too many return statements
-  "PLR0913", # Too many arguments
-  "RET504",  #  Unnecessary assignment
-  "PLR2004", # Magic values
-  "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
-  "E203",    # whitespace before ':'
+  "RUF100", # Unused blanket noqa directive	
+  "EXE001", # Shebang is present but file is not executable	
 ]
 
 [tool.bandit]
-skips = ["B104", "B101", "B311"]
-
+skips = ["B101", "B104", "B608"]
 
 [tool.vulture]
-ignore_names = ["*_missing"]
+ignore_decorators = ["@app.route", "@bp.route"]
 
 [tool.djlint]
 ignore = "H031,J004"
@@ -76,3 +84,15 @@ profile = "jinja"
 blank_line_after_tag = "load,extends,include"
 blank_line_before_tag = "load,extends,include"
 max_blank_lines = 1
+
+[tool.pyright]
+typeCheckingMode = "strict"
+stubPath = "./typings"
+reportMissingTypeStubs = "none" # Annoying
+reportPrivateUsage = "none"     # Ruff handles this 
+reportUnusedFunction = "none"   # Vulture handles this
+deprecateTypingAliases = true
+reportUnusedImport = false
+
+[tool.pytest.ini_options]
+markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]

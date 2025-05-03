@@ -42,5 +42,5 @@ print(
     f"host: {app_config.db.host}, port: {app_config.db.port}, "
     f"user: {app_config.db.user}, password: {app_config.db.password}, "
     f"database: {app_config.db.database}, tls: {app_config.db.tls}, "
-    f"auto_commit: {app_config.db.auto_commit}"
+    f"auto_commit: {app_config.db.auto_commit}",
 )

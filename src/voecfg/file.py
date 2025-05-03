@@ -6,9 +6,9 @@ import contextlib
 import json
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Optional, Union
+from typing import Any
 
-toml: Optional[ModuleType] = None
+toml: ModuleType | None = None
 with contextlib.suppress(ImportError):
     import toml
 
@@ -16,7 +16,7 @@ with contextlib.suppress(ImportError):
 class File:
     """A file."""
 
-    def __init__(self, path: Union[str, Path]):
+    def __init__(self, path: str | Path):
         self.path = path
 
     def load(self) -> Any:
@@ -36,9 +36,10 @@ class JSONFile(File):
 class TOMLFile(File):
     """A TOML file."""
 
-    def __init__(self, path: Union[str, Path]):
+    def __init__(self, path: str | Path):
         if not toml:
-            raise ImportError("The toml package is required for toml_file to work.")
+            msg = "The toml package is required for toml_file to work."
+            raise ImportError(msg)
         super().__init__(path)
 
     def load(self) -> Any:
@@ -51,11 +52,11 @@ class TOMLFile(File):
         return data
 
 
-def json_file(path: Union[str, Path]) -> Any:
+def json_file(path: str | Path) -> Any:
     """Return a JSONFile instance."""
     return JSONFile(path)
 
 
-def toml_file(path: Union[str, Path]) -> Any:
+def toml_file(path: str | Path) -> Any:
     """Return a TOMLFile instance."""
     return TOMLFile(path)

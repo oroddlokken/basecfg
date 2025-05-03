@@ -1,14 +1,14 @@
 {
-    "python.linting.flake8Enabled": true,
-    "python.linting.pylintEnabled": false,
-    "python.linting.enabled": true,
-    "python.analysis.typeCheckingMode": "basic",
     "files.exclude": {
         "**/__pycache__": true,
         "**/.mypy_cache": true,
         "**/.ruff_cache": true,
         "**/.tox": true,
         "**/.venv": true,
+        "**/.pytest_cache": true,
+        "**/node_modules": true,        
+        ".coverage": true,
+        ".coverage.*": true,
     },
     "terminal.integrated.env.linux": {
         "PYTHONPATH": "${workspaceFolder}"
@@ -19,4 +19,7 @@
     "lldb.showDisassembly": "auto",
     "lldb.dereferencePointers": true,
     "lldb.consoleMode": "commands",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
 }
