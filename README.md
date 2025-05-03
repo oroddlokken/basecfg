@@ -75,23 +75,28 @@ Setting up a dev environment locally with virtualenv:
 virtualenv .venv
 source .venv/bin/activate
 pip3 install -r dev-requirements.txt -r requirements.txt
-add2virtualenv .
+add2virtualenv src
 ```
 
-Running black, isort and tox:
+Running the code formatters:
 ```
-bash format_and_tox.sh # Runs black, isort and tox (black-check, isort-check, pydocstyle, mypy, ruff, vulture and bandit)
+just fmt
+```
+
+Running the code linters:
+```
+just lint
+just lint-pyright
 ```
 
 Running tests and coverage:
 ```
-cd tests
-make
+just test
 ```
 
 Running tests, tox and setup.py in Python 3.9+ using Docker:
 ```
-docker build -f Dockerfile.test -t voecfg-build-test .
+just test-docker
 ```
 
 ##### [0] The library was originally called basecfg, but was later renamed since there is a similar project with that name.
