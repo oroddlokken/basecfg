@@ -9,7 +9,7 @@ extras = {
 
 setup(
     name="voecfg",
-    version="0.3.0",
+    version="0.4.0",
     author="Ove Ragnar Oddløkken",
     author_email="post@rykroken.net",
     description="Configuration management",

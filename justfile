@@ -12,8 +12,8 @@ var:
 
 # run formatters
 fmt:
-    black src tests
-    isort src tests
+    black src tests example
+    isort src tests example
 
 # lint the code
 lint:

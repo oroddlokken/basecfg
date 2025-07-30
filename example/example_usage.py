@@ -74,6 +74,10 @@ class NestedConfig(SubConfig):
     # in the Config class below.
     some_string: str = "katt"
 
+    # We set MYAPP_NESTED_SOME_CONFIG_FILE as str in the environment,
+    # and we handle the conversion to Path in the library
+    some_config_file: Path
+
 
 class Config(BaseConfig):
     """MyApp Config."""
@@ -112,6 +116,7 @@ os.environ["MYAPP_NESTED_SOME_BYTES"] = "🐱"
 os.environ["MYAPP_NESTED_DEEP_SOME_DICT"] = '{"a": 1}'
 os.environ["MYAPP_NESTED_DEEP_SOME_DICT_EMPTY"] = "{}"
 os.environ["MYAPP_NESTED_DEEP_SOME_LIST"] = "[1, 2, 3]"
+os.environ["MYAPP_NESTED_SOME_CONFIG_FILE"] = "/path/to/some/config/file"
 
 # Make sure MYAPP_NESTED_DEBUG_MODE is not set to anything
 assert os.environ.get("MYAPP_NESTED_DEBUG_MODE") is None
@@ -131,6 +136,7 @@ assert config.nested.debug_mode is False
 assert config.nested.secret_key == "secret"
 assert config.nested.some_bytes == "🐱".encode()
 assert config.nested.some_string == "The quick brown fox jumps over the lazy dog."
+assert config.nested.some_config_file == Path("/path/to/some/config/file")
 
 assert config.nested.deep.another_string == "Lorem ipsum dolor sit amet"
 assert config.nested.deep.my_method() == [{}]

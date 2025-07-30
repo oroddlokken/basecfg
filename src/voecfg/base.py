@@ -96,12 +96,20 @@ class _Base:
                 raise ValueError(msg)
 
             if self._strict and not isinstance(getattr(self, member), _Base):
-                actual: type = type(getattr(self, member))
+                value = getattr(self, member)
+                actual: type = type(value)
                 expected = self._type_hints.get(member)
                 expected_origin = get_origin(expected) or expected
 
+                # Special case: cast str to Path if expected is Path
+                if expected_origin is Path and isinstance(value, str):
+                    casted_value = Path(value)
+                    setattr(self, member, casted_value)
+                    value = casted_value
+                    actual = Path
+
                 if expected_origin is not None and not isinstance(
-                    getattr(self, member),
+                    value,
                     expected_origin,
                 ):
                     msg = (

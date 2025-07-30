@@ -6,6 +6,7 @@ export VOECFG_SUB_VAR_FLOAT=0.4
 export VOECFG_SUB_VAR_BYTES="🐱"
 export VOECFG_SUB_VAR_DICT='{"a": 1}'
 export VOECFG_SUB_VAR_LIST="[1, 2, 3]"
+export VOECFG_SUB_VAR_STR_TO_PATH="/tmp/some_file.txt"
 
 export VOECFG_VAR_INT=1
 

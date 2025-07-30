@@ -37,6 +37,7 @@ def test_subcls_env_types() -> None:
         var_dict: dict[str, int]
         var_list: list[int]
         var_bytes: bytes
+        var_str_to_path: Path
 
     class voecfgTestConfig(BaseConfig):
         _prefix = "voecfg"
@@ -51,6 +52,7 @@ def test_subcls_env_types() -> None:
     assert config.flask.var_dict == {"a": 1}
     assert config.flask.var_list == [1, 2, 3]
     assert config.flask.var_bytes == "🐱".encode()
+    assert config.flask.var_str_to_path == Path("/tmp/some_file.txt")
 
 
 def test_raise_if_not_set1() -> None:
