@@ -1,5 +1,5 @@
 # voecfg / basecfg [0]
-Minimal configuration management library for Python. Written in pure Python with no* dependencies. Runs on Python 3.9+.
+Minimal configuration management library for Python. Written in pure Python with no* dependencies. Runs on Python 3.10+.
 
 `*`but it is supercharged with [python-dotenv](https://pypi.org/project/python-dotenv/) and [toml](https://pypi.org/project/toml/), and is tested with them.
 
@@ -94,7 +94,7 @@ Running tests and coverage:
 just test
 ```
 
-Running tests, tox and setup.py in Python 3.9+ using Docker:
+Running tests, tox and setup.py in Python 3.10+ using Docker:
 ```
 just test-docker
 ```

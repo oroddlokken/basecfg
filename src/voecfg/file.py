@@ -52,11 +52,11 @@ class TOMLFile(File):
         return data
 
 
-def json_file(path: str | Path) -> Any:
+def json_file(path: str | Path) -> JSONFile:
     """Return a JSONFile instance."""
     return JSONFile(path)
 
 
-def toml_file(path: str | Path) -> Any:
+def toml_file(path: str | Path) -> TOMLFile:
     """Return a TOMLFile instance."""
     return TOMLFile(path)

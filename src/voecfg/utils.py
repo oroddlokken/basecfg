@@ -7,11 +7,24 @@ import os
 from typing import Any, get_origin
 
 
+_TRUE_STRINGS = {"true", "1", "yes", "y"}
+_FALSE_STRINGS = {"false", "0", "no", "n"}
+
+
 def str_to_bool(val: str) -> bool:
-    """Return True if input is either true or 1."""
+    """Return True for 'true', '1', 'yes', 'y'; False for 'false', '0', 'no', 'n'.
+
+    Raises ValueError for unrecognized input.
+    """
     val = str(val).lower()
 
-    return val in {"true", "1", "yes", "y"}
+    if val in _TRUE_STRINGS:
+        return True
+    if val in _FALSE_STRINGS:
+        return False
+
+    msg = f"Cannot convert {val!r} to bool. Accepted values: {sorted(_TRUE_STRINGS | _FALSE_STRINGS)}"
+    raise ValueError(msg)
 
 
 def load_from_environment(member_type: Any, env_key: str) -> Any:
