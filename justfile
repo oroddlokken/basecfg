@@ -1,6 +1,3 @@
-# Automatically load environment variables from a .env file.
-# set dotenv-load
-
 # list all targets
 default:
     @just --list
@@ -9,32 +6,37 @@ default:
 var:
     @just --evaluate
 
-
 # run formatters
 fmt:
-    black src tests example
-    isort src tests example
+    uv run ruff format src tests
+    uv run ruff check --fix --unsafe-fixes src tests
 
 # lint the code
 lint:
-    tox
+    uv run ruff format --check --diff src tests
+    uv run ruff check src tests
 
 # lint using pyright
 lint-pyright:
-    PYRIGHT_PYTHON_FORCE_VERSION=latest pyright src tests example
+    PYRIGHT_PYTHON_FORCE_VERSION=latest uv run pyright src tests
 
 # run all linters
 lint-all:
     just lint
     just lint-pyright
 
+# find dead code with vulture
+vulture:
+    uv run vulture src tests vulture_whitelist.py
+
 # run tests
 test:
-    pytest tests --cov-report=html --cov=src/voecfg
+    uv run pytest --timeout 30 -n 8 tests
 
-# run tests in docker
-test-docker:
-    docker build -f Dockerfile.test --build-arg PYTHON_VERSION=3.10 -t voecfg-docker-test:py310 .
-    docker build -f Dockerfile.test --build-arg PYTHON_VERSION=3.11 -t voecfg-docker-test:py311 .
-    docker build -f Dockerfile.test --build-arg PYTHON_VERSION=3.12 -t voecfg-docker-test:py312 .
-    docker build -f Dockerfile.test --build-arg PYTHON_VERSION=3.13 -t voecfg-docker-test:py313 .
+# run only tests affected by code changes since last run
+test-changed:
+    uv run pytest --testmon --timeout 60 -n 8 tests
+
+# run all tests with coverage
+test-all:
+    COVERAGE_CORE=sysmon uv run pytest --timeout 60 -n 8 tests --cov-report=html --cov=src/voecfg

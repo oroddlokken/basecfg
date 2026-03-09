@@ -13,7 +13,7 @@ from voecfg import BaseConfig, File, SubConfig, json_file, toml_file
 load_dotenv((Path(__file__).parent / "voecfg_data" / "env").resolve())
 _voecfg__data = Path(__file__).parent / "voecfg_data"
 
-# ruff: noqa: PLR2004, PLR6301, N801
+# ruff: noqa: PLR2004, PLR6301, N801, S108, RUF043
 
 
 class BrokenMockFile(File):

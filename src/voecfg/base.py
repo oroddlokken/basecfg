@@ -51,9 +51,7 @@ class _Base:
         for member in self._members:
             member_type: None | type = None
 
-            if (
-                getattr(self, member, None) is None
-            ):  # noqa: SIM114, We want to test these two separately in /tests
+            if getattr(self, member, None) is None:  # noqa: SIM114, We want to test these two separately in /tests
                 member_type = self._type_hints.get(member)
                 value = None
             else:

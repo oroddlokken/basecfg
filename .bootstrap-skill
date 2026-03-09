@@ -1,0 +1,881 @@
+---
+name: python-bootstrap
+description: "Use when setting up a new Python project, modernizing an existing project's tooling, or migrating from legacy tools (tox, black, isort, mypy, bandit, setuptools). Triggered by phrases like 'new python project', 'bootstrap', 'setup project', 'modernize tooling', 'migrate from tox'."
+---
+
+# Python Project Bootstrap
+
+Set up new Python projects or migrate existing ones to a modern 2025+ tooling stack.
+
+## The Stack
+
+| Layer | Tool | Replaces |
+|---|---|---|
+| Package manager | **uv** | pip, virtualenv, pip-tools, tox |
+| Build backend | **hatchling** | setuptools, setup.cfg, setup.py |
+| Formatter | **ruff format** | black, isort |
+| Linter | **ruff check** | flake8, bandit, isort, pyupgrade, dozens of plugins |
+| Type checker | **pyright** (strict) | mypy |
+| Dead code | **vulture** | manual review |
+| Task runner | **just** | tox, Makefile |
+| WSGI server | **granian** | uWSGI, gunicorn |
+| Tests | **pytest** + xdist + testmon + timeout | unittest, nose |
+| Dev deps | **`[dependency-groups]`** (PEP 735) | `[project.optional-dependencies]` |
+| Issue tracking | **dcat** (dogcat) | GitHub Issues, Jira, plain TODO lists |
+
+**Do NOT use:** black, isort, mypy, bandit, tox, setuptools, `pip install`, `npm`, `[project.optional-dependencies]` for dev deps.
+
+---
+
+## Re-bootstrapping
+
+When a project already has a `.bootstrap` file, this is a **re-bootstrap** — the project was previously set up with this skill and needs to be brought in line with the current version.
+
+### Flow
+
+1. Diff `.bootstrap-skill` against `~/.claude/skills/python-bootstrap/SKILL.md`
+2. Summarize the changes to the user before making any modifications
+3. Walk the checklist (see bottom of this file), focusing on areas affected by the diff
+4. Apply changes, then update `.bootstrap` (date) and `.bootstrap-skill` (full copy of current SKILL.md)
+
+### What counts as a re-bootstrap
+
+- User says "bootstrap", "modernize", or "update tooling" on a project that has `.bootstrap`
+- If `.bootstrap` exists but `.bootstrap-skill` is missing, treat it as a full re-bootstrap (walk entire checklist)
+
+---
+
+## New Project Quick Start
+
+```bash
+mkdir myproject && cd myproject
+uv init --package myproject
+# Rearrange into src/ layout if uv didn't already
+uv add --group dev ruff pyright vulture pytest pytest-asyncio pytest-cov pytest-xdist pytest-timeout pytest-testmon
+# Replace pyproject.toml contents with the template below
+# Create the justfile from the template below
+# Create .gitignore from the template below
+# Create typings/ and vulture_whitelist.py
+mkdir -p typings
+touch vulture_whitelist.py
+uv sync --group dev
+git init && git add -A && git commit -m "Initial project setup"
+dcat init    # initialize issue tracking
+# Write CLAUDE.md — see template below
+# If CLAUDE.md already exists, incorporate the dcat section into it
+# Write .bootstrap and .bootstrap-skill (see Bootstrap Stamp below)
+```
+
+### Project Layout
+
+```
+myproject/
+  src/myproject/
+    __init__.py
+    app.py
+  tests/
+    conftest.py
+    test_app.py
+  typings/               # stub files for untyped third-party deps
+  pyproject.toml         # ALL config lives here — single source of truth
+  justfile               # task runner
+  uv.lock                # committed to git
+  vulture_whitelist.py   # dead code whitelist
+  .dogcats/              # dcat issue tracking (committed to git)
+  CLAUDE.md              # agent instructions (dcat workflow + project-specific)
+  .python-version        # pin python version (created by uv)
+  .gitignore             # see template below
+  .bootstrap             # skill name + date of last bootstrap
+  .bootstrap-skill       # full snapshot of SKILL.md at last bootstrap
+  Dockerfile             # optional — multi-stage uv build
+```
+
+---
+
+## .gitignore — Template
+
+```gitignore
+__pycache__
+.venv
+node_modules
+.env
+.tox
+htmlcov
+.coverage*
+.testmondata*
+.issues.lock
+.DS_Store
+scratch
+```
+
+---
+
+## Bootstrap Stamp
+
+After every bootstrap (new or re-bootstrap), write these two files:
+
+**`.bootstrap`** (get the timestamp from `date '+%Y-%m-%d %H:%M:%S'`):
+
+```
+skill: python-bootstrap
+date: YYYY-MM-DD HH:MM:SS
+```
+
+**`.bootstrap-skill`**: Full verbatim copy of `~/.claude/skills/python-bootstrap/SKILL.md` at time of bootstrap.
+
+Both files are committed to git. Together they answer: "what tooling standard was this project last aligned to, and when?"
+
+---
+
+## CLAUDE.md — Template
+
+If `CLAUDE.md` does not exist, create it with the content below. If it already exists, incorporate the "Issue tracking" section into the existing file.
+
+```markdown
+# Agent Instructions
+
+## Issue tracking
+
+This project uses **dcat** for issue tracking. You MUST run `dcat prime --opinionated` for instructions.
+Then run `dcat list --agent-only` to see the list of issues. Generally we work on bugs first, and always on high priority issues first.
+
+When running multiple `dcat` commands, make separate parallel Bash tool calls instead of chaining them with `&&` and `echo` separators.
+
+Mark each issue `in_progress` right when you start working on it — not before. Set `in_review` when work on that issue is done before moving on. The status should reflect what you are *actually* working on right now.
+
+It is okay to work on multiple related issues at the same time, but do NOT batch-mark an entire backlog as `in_progress` upfront. If there is a priority conflict, ask the user which to focus on first.
+
+If the user brings up a new bug, feature or anything else that warrants changes to the code, ALWAYS ask if we should create an issue for it before you start working on the code. When creating issues, set appropriate labels using `--labels` based on the issue content (e.g. `cli`, `tui`, `api`, `docs`, `testing`, `refactor`, `ux`, `performance`, etc.).
+
+When research or discussion produces findings relevant to an existing issue, ask these as **separate questions in order**:
+
+1. First ask: "Should I update issue [id] with these findings?"
+2. Only after that, separately ask: "Should I start working on the implementation?"
+Do NOT combine these into one question. The user may want to update the issue without starting work.
+
+### Closing Issues - IMPORTANT
+
+NEVER close issues without explicit user approval. When work is complete:
+
+1. Set status to `in_review`: `dcat update --status in_review $issueId`
+2. Ask the user to test
+3. Ask if we can close it: "Can I close issue [id] '[title]'?"
+4. Only run `dcat close` after user confirms
+```
+
+---
+
+## pyproject.toml — Complete Template
+
+Copy this wholesale, then customize the `[project]` section.
+
+```toml
+[project]
+name = "myproject"
+version = "0.1.0"
+description = "My project"
+requires-python = ">=3.13"
+dependencies = [
+    # Add granian for web projects:
+    # "granian>=2.2.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/myproject"]
+
+# PEP 735 dependency groups — NOT [project.optional-dependencies]
+[dependency-groups]
+dev = [
+    "ruff>=0.14.14",
+    "vulture>=2.14",
+    "pyright>=1.1.408",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov==7.0.0",
+    "pytest-xdist[psutil]",
+    "pytest-xdist==3.8.0",
+    "pytest-timeout>=2.4.0",
+    "pytest-testmon>=2.2.0",
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+  "A",     # flake8-builtins
+  "ARG",   # flake8-unused-arguments
+  "ASYNC", # flake8-async
+  "B",     # bugbear
+  "BLE",   # flake8-blind-except
+  "C4",    # flake8-comprehensions
+  "C90",   # McCabe complexity
+  "COM",   # flake8-commas
+  "D",     # pydocstyle
+  "DTZ",   # flake8-datetimez
+  "E",     # pycodestyle error
+  "EM",    # flake8-errmsg
+  "ERA",   # flake8-eradicate
+  "EXE",   # flake8-executable
+  "F",     # Pyflakes
+  "FA",    # flake8-future-annotations
+  "FBT",   # flake8-boolean-trap
+  "FLY",   # flynt
+  "FURB",  # refurb
+  "G",     # flake8-logging-format
+  "I",     # isort (ruff handles import sorting natively)
+  "ICN",   # flake8-import-conventions
+  "INP",   # flake8-no-pep420
+  "ISC",   # flake8-implicit-str-concat
+  "LOG",   # flake8-logging
+  "N",     # pep8-naming
+  "PERF",  # Perflint
+  "PIE",   # flake8-pie
+  "PL",    # Pylint (PLC, PLE, PLR, PLW)
+  "PT",    # flake8-pytest-style
+  "PTH",   # flake8-use-pathlib
+  "PYI",   # flake8-pyi
+  "Q",     # flake8-quotes
+  "RET",   # flake8-return
+  "RSE",   # flake8-raise
+  "RUF",   # Ruff-specific
+  "S",     # flake8-bandit (security)
+  "SIM",   # flake8-simplify
+  "SLF",   # flake8-self
+  "SLOT",  # flake8-slots
+  "T10",   # flake8-debugger
+  "T20",   # flake8-print
+  "TC",    # flake8-type-checking
+  "TID",   # flake8-tidy-imports
+  "TRY",   # tryceratops
+  "UP",    # pyupgrade
+  "W",     # pycodestyle warning
+  "YTT",   # flake8-2020
+]
+ignore = [
+  "COM812",  # trailing commas — conflicts with ruff formatter
+  "RUF100",  # unused blanket noqa directive
+  "EXE001",  # shebang present but file not executable
+  "D105",    # missing docstring in magic method
+  "D107",    # missing docstring in __init__
+  "D203",    # blank line before class docstring (conflicts with D211)
+  "D212",    # multi-line summary first line (conflicts with D213)
+  "D213",    # multi-line summary second line
+  "D413",    # missing blank line after last section
+  "D416",    # section name should end with colon
+  "S101",    # assert used — needed in tests, pyright handles production
+  "PLR0913", # too many arguments — not always avoidable
+  "PLR2004", # magic value comparison — too noisy for most projects
+  "C901",    # McCabe complexity — too rigid for real-world code
+  "G004",    # logging f-string — f-strings are fine in logging
+  # Tune per-project — uncomment as needed:
+  # "TRY301", # abstract raise to inner function
+  # "B904",   # raise ... from err
+  # "BLE001", # blind except
+  # "SLF001", # private member access
+  # "TRY401", # redundant exception in logging.exception
+  # "FBT001", # boolean positional arg in function definition
+  # "FBT002", # boolean default positional arg
+  # "T201",   # print found (enable for libraries, ignore for CLIs)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D103"]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+typeCheckingMode = "strict"
+stubPath = "./typings"
+reportMissingTypeStubs = "none"   # too noisy for most projects
+reportPrivateUsage = "none"       # ruff SLF handles this
+reportUnusedFunction = "none"     # vulture handles this
+deprecateTypingAliases = true
+reportUnreachable = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
+asyncio_mode = "strict"
+addopts = [
+    "--dist=worksteal",
+    "-p", "no:pastebin",
+    "-p", "no:nose",
+    "-p", "no:doctest",
+]
+```
+
+### Optional: Version from Git Tags
+
+Replace the static `version = "0.1.0"` with dynamic versioning:
+
+```toml
+[project]
+name = "myproject"
+dynamic = ["version"]    # remove version = "..." line
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]   # add hatch-vcs
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+raw-options = { version_scheme = "no-guess-dev" }
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/myproject/_version.py"
+
+[tool.ruff]
+exclude = ["src/myproject/_version.py"]   # generated file
+```
+
+### Optional: Git+HTTPS Dependencies
+
+If you depend on a git repo directly:
+
+```toml
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[project]
+dependencies = [
+    "mypkg @ git+https://github.com/user/repo.git@commithash",
+]
+```
+
+---
+
+## justfile — Complete Template
+
+```just
+# list all targets
+default:
+    @just --list
+
+# list all variables
+var:
+    @just --evaluate
+
+# run formatters
+fmt:
+    uv run ruff format src tests
+    uv run ruff check --fix --unsafe-fixes src tests
+
+# lint the code
+lint:
+    uv run ruff format --check --diff src tests
+    uv run ruff check src tests
+
+# lint using pyright
+lint-pyright:
+    PYRIGHT_PYTHON_FORCE_VERSION=latest uv run pyright src tests
+
+# run all linters
+lint-all:
+    just lint
+    just lint-pyright
+
+# find dead code with vulture
+vulture:
+    uv run vulture src tests vulture_whitelist.py
+
+# run tests
+test:
+    uv run pytest --timeout 30 -n 8 tests
+
+# run only tests affected by code changes since last run
+test-changed:
+    uv run pytest --testmon --timeout 60 -n 8 tests
+
+# run all tests with coverage
+test-all:
+    COVERAGE_CORE=sysmon uv run pytest --timeout 60 -n 8 tests --cov-report=html --cov=src/myproject
+```
+
+---
+
+## Dockerfile — Template
+
+Multi-stage Alpine build using the official uv image. Copies `pyproject.toml` + `uv.lock` for reproducible builds. Uses `--no-install-project` to install only dependencies — the project source is loaded via `PYTHONPATH`, not installed as a package.
+
+```dockerfile
+FROM ghcr.io/astral-sh/uv:python3.13-alpine AS builder
+
+# Uncomment if C extensions need compilation (e.g., lxml, psycopg):
+# RUN --mount=type=cache,sharing=locked,target=/var/cache/apk apk update && apk add gcc python3-dev musl-dev make libffi-dev git
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+RUN --mount=type=cache,target=/root/.cache uv sync --no-dev --no-install-project
+
+FROM ghcr.io/astral-sh/uv:python3.13-alpine
+
+# Uncomment runtime deps as needed:
+# RUN --mount=type=cache,sharing=locked,target=/var/cache/apk apk add --no-cache curl bash
+
+ENV PYTHONPATH="/app/src"
+ENV PATH="/app/.venv/bin:$PATH"
+
+COPY --from=builder /app/.venv /app/.venv
+COPY ./src /app/src
+
+WORKDIR /app
+
+EXPOSE 8000
+
+CMD ["granian", "--interface", "wsgi", "--factory", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "myproject.web.app:create_app"]
+```
+
+### Key Design Decisions (Dockerfile)
+
+**Why `--no-install-project`?** Only install dependencies, not the project itself. The source isn't available yet at that layer (it's copied later for better layer caching). The project is loaded via `PYTHONPATH` instead.
+
+**Why copy both `pyproject.toml` and `uv.lock`?** `uv.lock` pins exact versions. Without it, `uv sync` resolves fresh each build, making builds non-reproducible.
+
+**Why granian?** Rust-based WSGI/ASGI server that replaces uWSGI and gunicorn. No C compiler needed in Docker builds, zero config pain, and handles both WSGI (Flask) and ASGI (FastAPI) with a single binary. Use `--interface wsgi` for Flask, `--interface asgi` for async frameworks. Use `--factory` when the target is a factory function that returns the app (not the app object itself). Use `--host` and `--port` as separate flags (not `--bind`).
+
+**Why multi-stage?** Build tools (gcc, musl-dev, etc.) are only needed to compile C extensions. The final image copies only the `.venv` with compiled packages, keeping the image small.
+
+**Why `ghcr.io/astral-sh/uv:python3.13-alpine`?** Official uv image based on python:alpine. Using the same base for both stages avoids Python path/ABI mismatches when copying the `.venv`.
+
+---
+
+## Web Application Additions
+
+For Python web apps (Flask, FastAPI, Django) with HTML templates, JS, and CSS, add these frontend tools on top of the base stack.
+
+### Additional Stack
+
+| Layer | Tool | Notes |
+|---|---|---|
+| Template linter | **djlint** (Jinja profile) | Python dep — add to `[dependency-groups] dev` |
+| JS linter | **eslint** (flat config) | pnpm dep |
+| CSS linter | **stylelint** | pnpm dep — SCSS variant available |
+| JS tests | **vitest** + jsdom | pnpm dep — optional |
+| Frontend pkg mgr | **pnpm** | Manages eslint, stylelint, vitest |
+
+### Web Project Layout
+
+```
+myproject/
+  src/myproject/
+    __init__.py
+    web/
+      flask_server.py       # or app.py, main.py
+      templates/            # Jinja2 templates
+        base.html
+        index.html
+      static/
+        css/
+          style.css
+        js/
+          app.js
+  tests/
+    conftest.py
+    test_app.py
+    js/                     # JS tests (optional)
+      app.test.js
+  typings/
+  pyproject.toml
+  justfile
+  uv.lock
+  vulture_whitelist.py
+  .python-version
+  package.json              # frontend deps
+  pnpm-lock.yaml
+  eslint.config.js
+  .stylelintrc.json
+  vitest.config.js          # optional — only if JS tests needed
+```
+
+### pyproject.toml — Web Additions
+
+Add `djlint` to dev deps and add the `[tool.djlint]` and `[tool.vulture]` sections:
+
+```toml
+[dependency-groups]
+dev = [
+    # ... base dev deps ...
+    "djlint>=1.36.4",
+]
+
+[tool.djlint]
+ignore = "H023,H030,H031,J018"
+profile = "jinja"
+blank_line_after_tag = "load,extends,include"
+blank_line_before_tag = "load,extends,include"
+max_blank_lines = 1
+
+[tool.vulture]
+ignore_decorators = ["@app.route", "@bp.route", "@cli.command"]
+```
+
+Tune `[tool.djlint]` ignores per project. Common ignores:
+
+| Code | Meaning |
+|---|---|
+| `H023` | Do not use entity references |
+| `H030` | Consider adding a meta description |
+| `H031` | Consider adding meta keywords |
+| `J004` | Inner tags should be more indented |
+| `J018` | Jinja URLs should use `url_for` |
+
+### package.json — Plain CSS
+
+```json
+{
+  "devDependencies": {
+    "eslint": "^9.39.1",
+    "stylelint": "^16.16.0",
+    "stylelint-config-standard": "^38.0.0"
+  },
+  "scripts": {
+    "stylelint": "stylelint --allow-empty-input 'src/myproject/web/**/static/**/*.css'",
+    "stylelint-fix": "stylelint --fix --allow-empty-input 'src/myproject/web/**/static/**/*.css'"
+  },
+  "dependencies": {
+    "@eslint/js": "^9.39.1",
+    "globals": "^16.5.0"
+  }
+}
+```
+
+### package.json — SCSS Variant
+
+If using SCSS, swap the stylelint config and add sass:
+
+```json
+{
+  "devDependencies": {
+    "eslint": "^9.39.1",
+    "sass": "^1.85.1",
+    "stylelint": "^16.16.0",
+    "stylelint-config-prettier-scss": "^1.0.0",
+    "stylelint-config-standard-scss": "^14.0.0"
+  },
+  "scripts": {
+    "stylelint": "stylelint --allow-empty-input 'src/myproject/web/static/**/*.css'",
+    "stylelint-fix": "stylelint --fix --allow-empty-input 'src/myproject/web/static/**/*.css'"
+  },
+  "dependencies": {
+    "@eslint/js": "^9.39.1",
+    "globals": "^16.5.0"
+  }
+}
+```
+
+### eslint.config.js — Template
+
+```js
+const { defineConfig } = require("eslint/config");
+const globals = require("globals");
+const js = require("@eslint/js");
+
+module.exports = defineConfig([
+    {
+        files: ["**/*.js", "**/*.mjs"],
+        ignores: ["eslint.config.js"],
+        ...js.configs.recommended,
+
+        languageOptions: {
+            ecmaVersion: "latest",
+            sourceType: "module",
+            parserOptions: {},
+            globals: {
+                ...globals.browser,
+            },
+        },
+
+        rules: {
+            "no-unused-vars": ["error", {
+                args: "all",
+                argsIgnorePattern: "^_",
+            }],
+            indent: ["error", 4],
+            "linebreak-style": ["error", "unix"],
+            quotes: ["error", "double"],
+            semi: ["error", "always"],
+        },
+    },
+    {
+        files: ["eslint.config.js", "**/*.cjs"],
+        languageOptions: {
+            sourceType: "script",
+            globals: {
+                ...globals.node,
+            },
+        },
+    }
+]);
+```
+
+### .stylelintrc.json — Plain CSS
+
+```json
+{
+  "extends": [
+    "stylelint-config-standard"
+  ],
+  "rules": {
+    "selector-class-pattern": null,
+    "no-descending-specificity": null
+  }
+}
+```
+
+### .stylelintrc.json — SCSS Variant
+
+```json
+{
+  "extends": [
+    "stylelint-config-standard-scss",
+    "stylelint-config-prettier-scss"
+  ],
+  "rules": {
+    "selector-class-pattern": null
+  }
+}
+```
+
+### vitest.config.js — Optional JS Tests
+
+Only needed if the project has JavaScript that warrants unit tests:
+
+```js
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+    test: {
+        environment: "jsdom",
+        include: ["tests/js/**/*.test.js"],
+    },
+});
+```
+
+Add to package.json scripts:
+
+```json
+{
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "jsdom": "^28.1.0",
+    "vitest": "^4.0.18"
+  }
+}
+```
+
+### justfile — Web Recipes
+
+Replace the base `fmt` and `lint` recipes. Frontend linters run **in parallel** with `&` and `wait`:
+
+```just
+# run formatters
+fmt:
+    uv run ruff format src tests
+    uv run ruff check --fix --unsafe-fixes src tests
+    uv run djlint src/myproject/web/templates --reformat --quiet & eslint --no-error-on-unmatched-pattern --fix 'src/myproject/web/**/static/**/*js' & pnpm run --silent stylelint-fix & wait
+
+# lint the code
+lint:
+    uv run ruff format --check --diff src tests
+    uv run ruff check src tests
+    uv run djlint src/myproject/web/templates & eslint --no-error-on-unmatched-pattern 'src/myproject/web/**/static/**/*js' & pnpm run --silent stylelint & wait
+```
+
+If using vitest, add a `test-js` recipe and include it in `test-all`:
+
+```just
+# run frontend JS tests
+test-js:
+    pnpm test
+
+# run all tests with coverage
+test-all:
+    COVERAGE_CORE=sysmon uv run pytest --timeout 60 -n 8 tests --cov-report=html --cov=src/myproject
+    just test-js
+```
+
+### Web Project Quick Start
+
+```bash
+mkdir myproject && cd myproject
+uv init --package myproject
+# Rearrange into src/ layout with web/ subdirectory
+uv add --group dev ruff pyright vulture pytest pytest-asyncio pytest-cov pytest-xdist pytest-timeout pytest-testmon djlint
+mkdir -p src/myproject/web/templates src/myproject/web/static/css src/myproject/web/static/js
+mkdir -p typings tests
+touch vulture_whitelist.py
+
+# Create .gitignore from the template above
+
+# Frontend tooling
+pnpm init
+pnpm add -D eslint @eslint/js globals stylelint stylelint-config-standard
+# Create eslint.config.js, .stylelintrc.json from templates above
+# Add stylelint/stylelint-fix scripts to package.json
+
+# Replace pyproject.toml and justfile with webapp templates
+uv sync --group dev
+git init && git add -A && git commit -m "Initial project setup"
+dcat init    # initialize issue tracking
+# Write CLAUDE.md — see template above
+# If CLAUDE.md already exists, incorporate the dcat section into it
+# Write .bootstrap and .bootstrap-skill (see Bootstrap Stamp above)
+```
+
+### Key Design Decisions (Web)
+
+**Why djlint?** The only maintained HTML/Jinja template linter. Catches unclosed tags, bad indentation, accessibility issues. Profile set to `jinja` for Flask/FastAPI; use `django` for Django projects.
+
+**Why eslint flat config?** ESLint 9+ uses `eslint.config.js` (flat config) — the old `.eslintrc` format is deprecated. The flat config is simpler and composable.
+
+**Why parallel `&` + `wait`?** djlint, eslint, and stylelint are completely independent. Running them in parallel saves time. The `wait` ensures the justfile recipe fails if any linter fails.
+
+**Why `--no-error-on-unmatched-pattern`?** Prevents eslint from failing when no JS files exist yet (e.g., early in a project or in a sub-app with no static assets).
+
+**Why `--allow-empty-input`?** Same rationale for stylelint — don't fail when no CSS files match the glob.
+
+**Why `pnpm run --silent`?** Suppresses pnpm's own output noise, showing only stylelint's output.
+
+---
+
+## Migration From Legacy Tooling
+
+### Files to Delete
+
+Remove all of these — their config now lives in pyproject.toml or is no longer needed:
+
+- `tox.ini`
+- `setup.cfg`
+- `setup.py`
+- `.isort.cfg`
+- `.flake8`
+- `mypy.ini` / `.mypy.ini`
+- `bandit.yaml`
+- `.coveragerc`
+- `MANIFEST.in` (hatchling handles this)
+- `requirements.txt` / `requirements-dev.txt` (uv.lock replaces these)
+
+### pyproject.toml Changes
+
+1. **Build system**: `requires = ["setuptools"]` → `requires = ["hatchling"]`
+2. **Dev deps**: `[project.optional-dependencies] dev = [...]` → `[dependency-groups] dev = [...]`
+3. **Delete sections**: `[tool.black]`, `[tool.isort]`, `[tool.mypy]`, `[tool.bandit]`
+4. **Replace with**: `[tool.ruff]`, `[tool.ruff.lint]`, `[tool.pyright]` from the template above
+5. **Add**: `[tool.hatch.build.targets.wheel]` with packages list
+
+### justfile Changes
+
+All tool invocations become `uv run <tool>`:
+
+| Old | New |
+|---|---|
+| `black src tests` | `uv run ruff format src tests` |
+| `isort src tests` | (handled by `ruff format`) |
+| `ruff check src tests` | `uv run ruff check src tests` |
+| `mypy src tests` | `uv run pyright src tests` |
+| `bandit -r src` | (handled by `ruff check`) |
+| `tox` | `just lint` |
+| `pytest tests` | `uv run pytest --timeout 30 -n 8 tests` |
+
+### Migration Sequence
+
+```bash
+# 1. Install uv if not present
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 2. Delete old files
+rm -f tox.ini setup.cfg setup.py .isort.cfg .flake8 mypy.ini .mypy.ini bandit.yaml .coveragerc MANIFEST.in
+
+# 3. Update pyproject.toml (use the template above)
+
+# 4. Create/update justfile (use the template above)
+
+# 5. Create supporting files
+mkdir -p typings
+touch vulture_whitelist.py
+
+# 6. Lock and install
+uv sync --group dev
+
+# 7. Auto-fix formatting
+just fmt
+
+# 8. Check what's left to fix manually
+just lint
+
+# 9. Write .bootstrap and .bootstrap-skill (see Bootstrap Stamp above)
+```
+
+---
+
+## Key Design Decisions
+
+### Why uv?
+Single tool replaces pip, virtualenv, pip-tools, and tox. Written in Rust, resolves dependencies in seconds. `uv run` eliminates venv activation — just run commands directly.
+
+### Why hatchling?
+Modern, fast build backend. Supports src/ layout natively. Optional `hatch-vcs` plugin for git-tag-based versioning. No `setup.py` needed.
+
+### Why PEP 735 dependency-groups?
+`[dependency-groups]` is the standard way to declare dev dependencies since Python 3.13/PEP 735. Unlike `[project.optional-dependencies]`, dependency groups are not installable by end users — they're purely for development. uv supports them natively with `uv sync --group dev`.
+
+### Why ruff replaces 5+ tools?
+Ruff is a single Rust binary that replaces black (formatting), isort (import sorting), flake8 (linting), bandit (security), pyupgrade (modernization), and dozens of flake8 plugins. One config section, one tool, millisecond execution.
+
+### Why pyright over mypy?
+Pyright is faster, gives better error messages, integrates with VS Code/Pylance, and catches things mypy misses in strict mode. No need to run both — pyright alone is sufficient.
+
+### Why vulture?
+Neither ruff nor pyright detect dead code (unused functions, classes, variables across files). Vulture fills that gap. Use `vulture_whitelist.py` for intentional exceptions.
+
+### Why --dist=worksteal?
+pytest-xdist's `worksteal` scheduler is smarter than `loadfile` or `loadscope` — workers that finish early steal tests from slower workers. Combined with `-n 8` for 8 parallel workers.
+
+### Why COVERAGE_CORE=sysmon?
+Python 3.12+ has a new `sys.monitoring` API that's significantly faster for coverage collection than the old `sys.settrace` approach. Set this env var in `test-all` to use it.
+
+### Why --testmon?
+pytest-testmon tracks which tests are affected by code changes and only runs those. Use `just test-changed` during development for fast feedback. Use `just test-all` for full verification.
+
+### Why dcat?
+Git-native issue tracking — issues live in `.dogcats/` inside the repo, committed alongside the code. No external service needed. Supports types (bug, feature, task, epic, etc.), priorities, dependencies, parent-child relationships, and labels. Run `dcat prime` after starting a new session to load workflow instructions.
+
+---
+
+## Checklist: Is My Project Modern?
+
+- [ ] `pyproject.toml` is the only config file (no tox.ini, setup.cfg, .flake8, etc.)
+- [ ] `[dependency-groups]` for dev deps, not `[project.optional-dependencies]`
+- [ ] `hatchling` build backend, not setuptools
+- [ ] `ruff format` + `ruff check`, not black + isort + flake8
+- [ ] `pyright` in strict mode, not mypy
+- [ ] `vulture` for dead code detection
+- [ ] `just` as task runner with `fmt`, `lint`, `lint-pyright`, `lint-all`, `vulture`, `test`, `test-changed`, `test-all` recipes
+- [ ] All commands use `uv run`, never raw tool invocations
+- [ ] `.gitignore` with standard exclusions (pycache, .venv, node_modules, etc.)
+- [ ] `uv.lock` committed to git
+- [ ] `tests/` with pytest, xdist (worksteal), timeout, testmon
+- [ ] `typings/` directory for third-party stubs
+- [ ] Dockerfile uses multi-stage build with `uv sync --no-dev --no-install-project`
+- [ ] `dcat init` for git-native issue tracking (`.dogcats/` committed, `.issues.lock` in `.gitignore`)
+- [ ] `CLAUDE.md` with dcat workflow instructions (created from template or incorporated into existing)
+- [ ] `.bootstrap` with skill name and date, `.bootstrap-skill` with full SKILL.md snapshot (both committed)
+
+### Web App Additions
+
+- [ ] `djlint` in dev deps with `[tool.djlint]` config (profile = `jinja` or `django`)
+- [ ] `[tool.vulture]` with `ignore_decorators` for route decorators
+- [ ] `package.json` with pnpm — eslint, stylelint (and optionally vitest, sass)
+- [ ] `eslint.config.js` — flat config, ESM, browser globals
+- [ ] `.stylelintrc.json` — plain CSS or SCSS variant
+- [ ] `fmt`/`lint` recipes run djlint, eslint, stylelint **in parallel** (`&` + `wait`)
+- [ ] Frontend deps managed by **pnpm**, never npm
