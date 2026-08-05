@@ -52,11 +52,15 @@ class TOMLFile(File):
         return data
 
 
-def json_file(path: str | Path) -> JSONFile:
+# The factories return Any rather than JSONFile/TOMLFile because the value a caller
+# ends up holding is the file's contents, not the File: _setup() swaps the attribute
+# for load()'s result. Annotating the real return type makes the documented
+# `devices: dict[str, Any] = json_file(...)` fail every type checker.
+def json_file(path: str | Path) -> Any:
     """Return a JSONFile instance."""
     return JSONFile(path)
 
 
-def toml_file(path: str | Path) -> TOMLFile:
+def toml_file(path: str | Path) -> Any:
     """Return a TOMLFile instance."""
     return TOMLFile(path)

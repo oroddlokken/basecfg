@@ -141,7 +141,7 @@ def test_ignore_property() -> None:
 def test_load_json() -> None:
     class voecfgTestConfig(BaseConfig):
         _prefix = "voecfg"
-        devices: dict[str, Any] = json_file(_voecfg__data / "load_json.json")  # pyright: ignore[reportAssignmentType]
+        devices: dict[str, Any] = json_file(_voecfg__data / "load_json.json")
 
     config = voecfgTestConfig()
     assert config.devices["a"] == 1
@@ -150,7 +150,7 @@ def test_load_json() -> None:
 def test_load_toml() -> None:
     class voecfgTestConfig(BaseConfig):
         _prefix = "voecfg"
-        devices: dict[str, Any] = toml_file(_voecfg__data / "load_toml.toml")  # pyright: ignore[reportAssignmentType]
+        devices: dict[str, Any] = toml_file(_voecfg__data / "load_toml.toml")
 
     config = voecfgTestConfig()
     assert not config.devices["a"][0]
@@ -229,7 +229,7 @@ def test_missing_value() -> None:
 def test_load_json_invalid() -> None:
     class voecfgTestConfig(BaseConfig):
         _prefix = "voecfg"
-        devices: dict[str, Any] = json_file(_voecfg__data / "load_json_invalid.json")  # pyright: ignore[reportAssignmentType]
+        devices: dict[str, Any] = json_file(_voecfg__data / "load_json_invalid.json")
 
     with pytest.raises(json.decoder.JSONDecodeError):
         voecfgTestConfig()
@@ -238,7 +238,7 @@ def test_load_json_invalid() -> None:
 def test_load_toml_invalid() -> None:
     class voecfgTestConfig(BaseConfig):
         _prefix = "voecfg"
-        devices: dict[str, Any] = toml_file(_voecfg__data / "load_toml_invalid.toml")  # pyright: ignore[reportAssignmentType]
+        devices: dict[str, Any] = toml_file(_voecfg__data / "load_toml_invalid.toml")
 
     with pytest.raises(toml.decoder.TomlDecodeError):
         voecfgTestConfig()
