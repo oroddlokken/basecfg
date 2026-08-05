@@ -6,7 +6,6 @@ import json
 import os
 from typing import Any, get_origin
 
-
 _TRUE_STRINGS = {"true", "1", "yes", "y"}
 _FALSE_STRINGS = {"false", "0", "no", "n"}
 
@@ -23,7 +22,8 @@ def str_to_bool(val: str) -> bool:
     if val in _FALSE_STRINGS:
         return False
 
-    msg = f"Cannot convert {val!r} to bool. Accepted values: {sorted(_TRUE_STRINGS | _FALSE_STRINGS)}"
+    accepted = sorted(_TRUE_STRINGS | _FALSE_STRINGS)
+    msg = f"Cannot convert {val!r} to bool. Accepted values: {accepted}"
     raise ValueError(msg)
 
 

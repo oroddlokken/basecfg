@@ -115,7 +115,10 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["D100", "D101", "D102", "D103"]
+# RUF012/SLF001: test config classes exercise the _secret_keys/_coercions API as
+# users write it — demanding ClassVar here would document the wrong usage.
+# S105: the "passwords" are fixture literals asserted against redaction output.
+"tests/**" = ["D100", "D101", "D102", "D103", "RUF012", "S105", "SLF001"]
 
 [tool.pyright]
 venvPath = "."

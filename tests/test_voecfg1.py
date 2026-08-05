@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +24,7 @@ def _env_setup(monkeypatch: pytest.MonkeyPatch) -> None:
     for key, value in dotenv.dotenv_values(env_file).items():
         if value is not None:
             monkeypatch.setenv(key, value)
+
 
 # ruff: noqa: PLR2004, PLR6301, N801, S108, RUF043
 
@@ -139,7 +141,7 @@ def test_ignore_property() -> None:
 def test_load_json() -> None:
     class voecfgTestConfig(BaseConfig):
         _prefix = "voecfg"
-        devices: dict[str, Any] = json_file(_voecfg__data / "load_json.json")
+        devices: dict[str, Any] = json_file(_voecfg__data / "load_json.json")  # pyright: ignore[reportAssignmentType]
 
     config = voecfgTestConfig()
     assert config.devices["a"] == 1
@@ -148,7 +150,7 @@ def test_load_json() -> None:
 def test_load_toml() -> None:
     class voecfgTestConfig(BaseConfig):
         _prefix = "voecfg"
-        devices: dict[str, Any] = toml_file(_voecfg__data / "load_toml.toml")
+        devices: dict[str, Any] = toml_file(_voecfg__data / "load_toml.toml")  # pyright: ignore[reportAssignmentType]
 
     config = voecfgTestConfig()
     assert not config.devices["a"][0]
@@ -227,7 +229,7 @@ def test_missing_value() -> None:
 def test_load_json_invalid() -> None:
     class voecfgTestConfig(BaseConfig):
         _prefix = "voecfg"
-        devices: dict[str, Any] = json_file(_voecfg__data / "load_json_invalid.json")
+        devices: dict[str, Any] = json_file(_voecfg__data / "load_json_invalid.json")  # pyright: ignore[reportAssignmentType]
 
     with pytest.raises(json.decoder.JSONDecodeError):
         voecfgTestConfig()
@@ -236,7 +238,7 @@ def test_load_json_invalid() -> None:
 def test_load_toml_invalid() -> None:
     class voecfgTestConfig(BaseConfig):
         _prefix = "voecfg"
-        devices: dict[str, Any] = toml_file(_voecfg__data / "load_toml_invalid.toml")
+        devices: dict[str, Any] = toml_file(_voecfg__data / "load_toml_invalid.toml")  # pyright: ignore[reportAssignmentType]
 
     with pytest.raises(toml.decoder.TomlDecodeError):
         voecfgTestConfig()
@@ -355,7 +357,9 @@ def test_falsy_config_file_values() -> None:
     class voecfgTestConfig(BaseConfig):
         _prefix = "voecfg"
         _strict = False
-        _config_path = json_file(Path(__file__).parent / "voecfg_data" / "falsy_values.json")
+        _config_path = json_file(
+            Path(__file__).parent / "voecfg_data" / "falsy_values.json"
+        )
         count: int = 99
         debug: bool = True
         label: str = "default"
@@ -369,12 +373,11 @@ def test_falsy_config_file_values() -> None:
 
 
 def test_optional_field_not_set() -> None:
-    from typing import Optional
 
     class voecfgTestConfig(BaseConfig):
         _prefix = "voecfg_opt"
         required_val: str = "hello"
-        optional_val: Optional[str] = None
+        optional_val: str | None = None
 
     config = voecfgTestConfig()
     assert config.required_val == "hello"
@@ -423,7 +426,7 @@ def test_union_type_strict_mode_int() -> None:
 def test_union_type_strict_mode_rejects_wrong_type() -> None:
     class voecfgTestConfig(BaseConfig):
         _prefix = "voecfg_union3"
-        value: str | int = 3.14
+        value: str | int = 3.14  # pyright: ignore[reportAssignmentType]
 
     with pytest.raises(TypeError, match="expected str | int"):
         voecfgTestConfig()
@@ -466,8 +469,6 @@ def test_optional_union_type() -> None:
 
 
 def test_unknown_config_keys_warns() -> None:
-    import warnings
-
     class voecfgTestConfig(BaseConfig):
         _prefix = "voecfg"
         _strict = False

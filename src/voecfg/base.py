@@ -7,7 +7,15 @@ import threading
 import warnings
 from pathlib import Path
 from types import GenericAlias, NoneType, UnionType
-from typing import Any, Union, cast, get_args, get_origin, get_type_hints
+from typing import (
+    Any,
+    ClassVar,
+    Union,  # pyright: ignore[reportDeprecated]
+    cast,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 from voecfg.file import File, json_file, toml_file
 from voecfg.utils import load_from_environment
@@ -16,7 +24,9 @@ from voecfg.utils import load_from_environment
 def _is_optional_type(hint: Any) -> bool:
     """Check if a type hint is Optional (i.e., X | None or Optional[X])."""
     origin = get_origin(hint)
-    if origin is Union or origin is UnionType:
+    # get_origin returns typing.Union for Optional[X]/Union[X, Y] on Python < 3.14
+    # and types.UnionType for X | Y, so both arms are needed across supported versions.
+    if origin is Union or origin is UnionType:  # pyright: ignore[reportDeprecated]
         return NoneType in get_args(hint)
     return False
 
@@ -31,9 +41,9 @@ class _Base:
     _prefix: str = ""
     _config_path: File | str | Path | None = None
     _strict: bool = True
-    _secret_keys: set[str] = set()
-    _no_validate: set[str] = set()
-    _coercions: dict[tuple[type, type], Any] = {
+    _secret_keys: ClassVar[set[str]] = set()
+    _no_validate: ClassVar[set[str]] = set()
+    _coercions: ClassVar[dict[tuple[type, type], Any]] = {
         (str, Path): Path,
     }
 
@@ -70,14 +80,15 @@ class _Base:
         self._names.append(self._cls_name)
 
         for member in self._members:
-            member_type: None | type = None
+            member_type: type[Any] | None = None
+            value: Any = None
 
             if getattr(self, member, None) is None:  # noqa: SIM114, We want to test these two separately in /tests
                 member_type = self._type_hints.get(member)
                 value = None
             else:
                 value = getattr(self, member)
-                member_type = type(getattr(self, member))
+                member_type = cast("type[Any]", type(value))
 
             # Ignore instantiated classes
             if getattr(value, "__self__", None):
@@ -102,14 +113,16 @@ class _Base:
 
     def _warn_unknown_keys(self) -> None:
         """Warn about unknown keys in the config file section."""
-        if not isinstance(self._current_dict, dict):
+        raw: Any = self._current_dict
+        if not isinstance(raw, dict):
             return
+        current = cast("dict[str, Any]", raw)
         known_keys = set(self._members.keys())
         for m in self._members:
             val = getattr(self, m, None)
             if isinstance(val, _Base):
                 known_keys.add(val._prefix)  # noqa: SLF001
-        unknown = set(self._current_dict.keys()) - known_keys
+        unknown = set(current.keys()) - known_keys
         if unknown:
             warnings.warn(
                 f"{self._cls_name}: unknown config keys: {sorted(unknown)}",
@@ -119,9 +132,9 @@ class _Base:
     def _init_nested(self, value: "_Base") -> None:
         """Initialize a nested SubConfig."""
         value._setup(  # noqa: SLF001
-            _prefixes=[*self._prefixes, self._prefix],
+            _prefixes=[*(self._prefixes or []), self._prefix],
             _parent_dict=self._current_dict,
-            _names=[*self._names],
+            _names=[*(self._names or [])],
         )
 
     def _load_from_file(self, member: str) -> None:
@@ -131,7 +144,7 @@ class _Base:
             setattr(self, member, dict_value)
 
     def _load_from_env(
-        self, member: str, member_type: type | None, env_key: str
+        self, member: str, member_type: type[Any] | None, env_key: str
     ) -> None:
         """Load a member value from the environment, overriding file values."""
         if env_key in os.environ:
@@ -151,19 +164,22 @@ class _Base:
             )
             raise ValueError(msg)
 
-    def _try_coerce(self, member: str, value: Any, target: type) -> tuple[Any, type]:
+    def _try_coerce(
+        self, member: str, value: Any, target: Any
+    ) -> tuple[Any, type[Any]]:
         """Try to coerce a value to the target type using _coercions registry."""
-        actual_type = type(value)
+        actual_type = cast("type[Any]", type(value))
         coercion = self._coercions.get((actual_type, target))
         if coercion is not None:
             value = coercion(value)
             setattr(self, member, value)
-            return value, type(value)
+            coerced_type = cast("type[Any]", type(value))
+            return value, coerced_type
         return value, actual_type
 
     def _validate_type(self, member: str, var_path: str, env_key: str) -> None:
         """Validate that the member value matches its type hint."""
-        value = getattr(self, member)
+        value: Any = getattr(self, member)
         hint = self._type_hints.get(member)
         is_optional = _is_optional_type(hint)
 
@@ -171,7 +187,7 @@ class _Base:
         if value is None and is_optional:
             return
 
-        actual: type = type(value)
+        actual = cast("type[Any]", type(value))
         expected = hint
 
         # Unwrap Optional[T] / T | None to get the inner type
@@ -181,17 +197,17 @@ class _Base:
 
         # Check if expected is a Union type (e.g. str | int)
         expected_origin = get_origin(expected)
-        is_union = expected_origin is Union or expected_origin is UnionType
+        is_union = (
+            expected_origin is Union  # pyright: ignore[reportDeprecated]
+            or expected_origin is UnionType
+        )
         if is_union:
             union_args = get_args(expected)
             # Try coercion to any of the union types
             for target in union_args:
                 value, actual = self._try_coerce(member, value, target)
             if not isinstance(value, union_args):
-                msg = (
-                    f"{var_path} / {env_key} is {actual}, "
-                    f"expected {expected}"
-                )
+                msg = f"{var_path} / {env_key} is {actual}, expected {expected}"
                 raise TypeError(msg)
             return
 
@@ -204,10 +220,7 @@ class _Base:
             value,
             expected_origin,
         ):
-            msg = (
-                f"{var_path} / {env_key} is {actual}, "
-                f"expected {expected_origin}"
-            )
+            msg = f"{var_path} / {env_key} is {actual}, expected {expected_origin}"
             raise TypeError(msg)
 
     def _get_members(self) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -334,7 +347,7 @@ class BaseConfig(_Base):
                 if not isinstance(loaded, dict):
                     msg = f"{self._cls_name}: {config_path} did not return a dict"
                     raise TypeError(msg)
-                parent_dict = cast(dict[str, Any], loaded)
+                parent_dict = cast("dict[str, Any]", loaded)
 
             # If the path is a string, try to load it as a JSON or TOML file
             elif isinstance(
