@@ -70,13 +70,11 @@ However, omitting one of the required environment variables will result in an er
 Alternatively, install [python-dotenv](https://pypi.org/project/python-dotenv/), put the values in a .env file and have them loaded automatically with `from dotenv import load_dotenv` and `load_dotenv()`.
 
 ## Development
-Setting up a dev environment locally with virtualenv:
+This project uses [uv](https://docs.astral.sh/uv/). Set up the environment with:
 ```
-virtualenv .venv
-source .venv/bin/activate
-pip3 install -r dev-requirements.txt -r requirements.txt
-add2virtualenv src
+uv sync
 ```
+This installs the package and the `dev` dependency group. The `just` recipes below all call `uv run`, so there is no virtualenv to activate.
 
 Running the code formatters:
 ```
@@ -89,14 +87,19 @@ just lint
 just lint-pyright
 ```
 
-Running tests and coverage:
+Running the tests:
 ```
 just test
 ```
 
-Running tests, tox and setup.py in Python 3.10+ using Docker:
+Running the tests with a coverage report:
 ```
-just test-docker
+just test-all
+```
+
+Checking for dead code:
+```
+just vulture
 ```
 
 ##### [0] The library was originally called basecfg, but was later renamed since there is a similar project with that name.

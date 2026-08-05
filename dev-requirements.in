@@ -1,8 +1,0 @@
-ruff==0.11.8
-pyright==1.1.400
-python-dotenv==1.1.0
-coverage==7.8.0
-vulture==2.14
-rust-just==1.40.0
-pytest==8.3.5
-pytest-cov==6.1.1

@@ -29,6 +29,7 @@ dev = [
     "pytest-timeout>=2.4.0",
     "pytest-testmon>=2.2.0",
     "python-dotenv>=1.0.0",
+    "rust-just>=1.40.0", # the justfile recipes are the documented dev entrypoint
     "toml>=0.10.2",
 ]
 
