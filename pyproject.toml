@@ -89,7 +89,6 @@ select = [
 ]
 ignore = [
   "COM812",  # trailing commas — conflicts with ruff formatter
-  "RUF100",  # unused blanket noqa directive
   "EXE001",  # shebang present but file not executable
   "D105",    # missing docstring in magic method
   "D107",    # missing docstring in __init__

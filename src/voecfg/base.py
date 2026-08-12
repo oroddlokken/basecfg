@@ -83,7 +83,7 @@ class _Base:
             member_type: type[Any] | None = None
             value: Any = None
 
-            if getattr(self, member, None) is None:  # noqa: SIM114, We want to test these two separately in /tests
+            if getattr(self, member, None) is None:
                 member_type = self._type_hints.get(member)
                 value = None
             else:
@@ -155,7 +155,7 @@ class _Base:
         """Raise if a required (non-optional) field is still None."""
         hint = self._type_hints.get(member)
         is_optional = _is_optional_type(hint)
-        if getattr(self, member, None) is None and not is_optional:  # noqa: PLR6201
+        if getattr(self, member, None) is None and not is_optional:
             msg = (
                 f"Configuration error:\n"
                 f"  - Class path: {var_path}\n"

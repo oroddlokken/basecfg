@@ -12,8 +12,6 @@ import toml
 from voecfg import BaseConfig, File, SubConfig, json_file, toml_file
 from voecfg.utils import str_to_bool
 
-# ruff: noqa: UP007
-
 _voecfg__data = Path(__file__).parent / "voecfg_data"
 
 
@@ -26,7 +24,7 @@ def _env_setup(monkeypatch: pytest.MonkeyPatch) -> None:
             monkeypatch.setenv(key, value)
 
 
-# ruff: noqa: PLR2004, PLR6301, N801, S108, RUF043
+# ruff: noqa: N801, S108, RUF043
 
 
 class BrokenMockFile(File):
