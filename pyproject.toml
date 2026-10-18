@@ -6,7 +6,7 @@ requires-python = ">=3.10"
 dependencies = []
 
 [project.optional-dependencies]
-extras = ["python-dotenv>=1.0.0", "toml>=0.10.2"]
+extras = ["python-dotenv>=1.2.4", "toml>=0.10.2"]
 
 [build-system]
 requires = ["hatchling"]
@@ -18,9 +18,9 @@ packages = ["src/voecfg"]
 # PEP 735 dependency groups — NOT [project.optional-dependencies]
 [dependency-groups]
 dev = [
-    "ruff>=0.16.2",
+    "ruff>=0.17.1",
     "vulture>=2.16",
-    "pyright>=1.1.411",
+    "pyright>=1.1.414",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "pytest-cov==7.1.0",
@@ -28,8 +28,8 @@ dev = [
     "pytest-xdist==3.8.0",
     "pytest-timeout>=2.4.0",
     "pytest-testmon>=2.2.0",
-    "python-dotenv>=1.0.0",
-    "rust-just>=1.40.0", # the justfile recipes are the documented dev entrypoint
+    "python-dotenv>=1.2.4",
+    "rust-just>=1.59.0", # the justfile recipes are the documented dev entrypoint
     "toml>=0.10.2",
 ]
 

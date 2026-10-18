@@ -493,14 +493,14 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "python-dotenv", marker = "extra == 'extras'", specifier = ">=1.0.0" },
+    { name = "python-dotenv", marker = "extra == 'extras'", specifier = ">=1.2.4" },
     { name = "toml", marker = "extra == 'extras'", specifier = ">=0.10.2" },
 ]
 provides-extras = ["extras"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "pyright", specifier = ">=1.1.411" },
+    { name = "pyright", specifier = ">=1.1.414" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "pytest-asyncio", specifier = ">=1.4.0" },
     { name = "pytest-cov", specifier = "==7.1.0" },
@@ -508,9 +508,9 @@ dev = [
     { name = "pytest-timeout", specifier = ">=2.4.0" },
     { name = "pytest-xdist", specifier = "==3.8.0" },
     { name = "pytest-xdist", extras = ["psutil"] },
-    { name = "python-dotenv", specifier = ">=1.0.0" },
-    { name = "ruff", specifier = ">=0.16.2" },
-    { name = "rust-just", specifier = ">=1.40.0" },
+    { name = "python-dotenv", specifier = ">=1.2.4" },
+    { name = "ruff", specifier = ">=0.17.1" },
+    { name = "rust-just", specifier = ">=1.59.0" },
     { name = "toml", specifier = ">=0.10.2" },
     { name = "vulture", specifier = ">=2.16" },
 ]
