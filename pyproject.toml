@@ -6,7 +6,7 @@ requires-python = ">=3.10"
 dependencies = []
 
 [project.optional-dependencies]
-extras = ["python-dotenv>=1.2.4", "toml>=0.10.2"]
+extras = ["python-dotenv>=1.0.0", "toml>=0.10.2"]
 
 [build-system]
 requires = ["hatchling"]
